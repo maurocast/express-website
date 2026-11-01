@@ -42,6 +42,12 @@ app.use((req, res) => {
     res.status(404).send('404 - Page Not Found');
 });
 
+// Allow requests from your specific production domain
+app.use(cors({
+  origin: 'https://express-website-jclj.onrender.com'
+}));
+
+
 // Start server
 const PORT = process.env.PORT || 3000;
 
