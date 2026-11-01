@@ -6,7 +6,7 @@ export function setGeo(j) {
         async createGeoJson(j) {
             await this.createJ(j)                                                       // create j
             await this.setFeatureCollection(j)                                          // collection
-            await this.downloadData(j)                                                  // download se non return
+        //    await this.downloadData(j)                                                  // download se non return
             return JSON.stringify(j.featureCollection)                                  // transformed json
         },
         async createJ(j) {
