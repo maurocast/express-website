@@ -7,7 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Fit</title>
     <link rel="icon" href="./assets/icons/favicon.ico">
-    <link rel="stylesheet" href="/style.css">
     
     <!-- Main -->
    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -50,7 +49,7 @@
             .then(data => data)
             .catch(error => console.error('Error fetching config:', error));
 
-        j.fileFit = 'http://localhost:3000/files/2026-09-03-13-04-07.fit'
+        j.fileFit = 'https://express-website-jclj.onrender.com/files/2026-09-03-13-04-07.fit'
 
         const x = await fetchFileFit(j)
         // Example
