@@ -1,0 +1,175 @@
+{
+    "mapIniziale": {
+        "divMap": "divMap",
+        "center": [
+            "44.38271",
+            "9.02733"
+        ],
+        "zoom": "13",
+        "zoomControl": false,
+        "position": "bottomleft",
+        "maxZoom:": "25",
+        "tileLayer": "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+        "attribution": "Map data: &copy; OpenStreetMap contributors",
+        "xtileLayer": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "xattribution": "Map data: &copy; OpenStreetMap contributors"        
+    },
+    "menu":
+    [
+        {"className":"left-menu-item-header","innerHTML":"Menu Generale","fn":""},
+        {"className":"left-menu-item","innerHTML":"Parametri mappa Iniziale","fn":"{ ParametrizzazioneIniziale(e, config) }"},
+        {"className":"left-menu-item","innerHTML":"Uscite","fn":"Uscite"},
+        {"className":"left-menu-item","innerHTML":"Routing","fn":"(e) => { Routing(config, map, {}) }"},
+        {"className":"left-menu-item","innerHTML":"Race", "fn":"Race"},
+        {"className":"left-menu-item","innerHTML":"Importazione", "fn":"{ config._sql = 'importFileServer', setXMLHttpRequest(config) }"}
+    ],
+   
+    "controlScale":{
+        "position": "bottomleft",
+        "metric": true,
+        "imperial": false,
+        "maxWidth": 200
+    },
+    
+    "server": {
+        "_pagineRequest": [
+            "/index.html",
+            "/doc.html" 
+        ],
+        "_paginaIniziale": "/index.html",
+        "path_file": "web/public",
+        "_suffissoUrl": [
+            "html",
+            "css",
+            "ico",
+            "jpg",
+            "png",
+            "gif",
+            "svg",
+            "js",
+            "mjs",
+            "json"
+        ],
+        "_contentType": [
+            "text/html",
+            "text/css",
+            "image/x-icon",
+            "image/x-icon",
+            "image/png",
+            "image/x-icon",
+            "image/svg+xml",
+            "text/javascript",
+            "text/javascript",
+            "application/json"
+        ],
+        "_folder": [
+            "web/",
+            "web/",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "web/",
+            ""
+        ],
+        "_Porta": "3000"
+    },
+    "NcolorsArr": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        100
+    ],
+    "colorsArr": [
+        "greenyellow",
+        "green",
+        "yellow",
+        "orange",
+        "red",
+        "purple",
+        "brown",
+        "black"
+    ],
+    "cssClassNames": {
+        "headerRow": "cssHeaderRow",
+        "tableRow": "cssTableRow",
+        "oddTableRow": "cssOddTableRow",
+        "selectedTableRow": "cssSelectedTableRow",
+        "hoverTableRow": "cssHoverTableRow",
+        "headerCell": "cssHeaderCell",
+        "tableCell": "cssTableCell",
+        "rowNumberCell": "cssRowNumberCell"
+    },
+    "imgLoader": "",
+    "SelectedRows": {
+        "_milestones": [],
+        "_milestonesDescr": [],
+        "_altitude": [],
+        "_date": [],
+        "_durata": []
+    },
+    "SelectedRowsDestra": {
+        "_date": [],
+        "_durata": []
+    },
+    "utente": "Mauro Castellotti",
+    "nome_applicazione": "FIT",
+    "logo_wait": "/static/images/bike.png",
+    "iconBike": "./static/images/bike.png",
+    "Server": "localhost",
+    "Porta": "3000",
+    "databaseSqlLite": "Fit.db",
+    "_utente": "Mauro Castellotti",
+    "_nome_applicazione": "FIT",
+    "_Server": "localhost",
+    "_databaseSqlLite": "Fit.db",
+    "_type": "fs",
+    "_sql": "PREPARE a1698851517479(int) AS select * from fit_milestone; EXECUTE a1698851517479(1);",
+    "_passo": 500,
+    "_param": "web/config.json",
+    "_tipofile": "",
+    "_pagineRequest": [
+        "/static/html/index.html",
+        "/static/html/doc.html"
+    ],
+    "_paginaLoad": "index.html",
+    "_paginaIniziale": "/static/html/index.html",
+    "_DIRECTORY": "web/public",
+    "_DATABASE": "Fit.db",
+    "_scriptsrc": "/static/js/",
+    "_pgServerdevelopment": [
+        "localhost",
+        "postgres",
+        "superuser2024",
+        "fit",
+        "5432",
+        "false"
+    ],
+    "_pgServer": [
+        "localhost",
+        "postgres",
+        "superuser2024",
+        "fit",
+        "5432",
+        "false"
+    ],
+    "_environment": "development",
+    "_fileDaElaborare": "",
+    "_filename": "210615064118.fit",
+    "_rows": "",
+    "_data": "2021-06-15",
+    "_result": "",
+    "_LatLngHome": [
+        44.3802,
+        9.06759
+    ],
+    "type": "updateCenterMap",
+    "center": "45.86945,11.51125",
+    "zoom": "13"
+}

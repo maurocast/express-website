@@ -8,6 +8,8 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use('/vendor/leaflet', express.static(path.join(__dirname, 'node_modules', 'leaflet')));
+
 // Serve static website files
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -19,6 +21,11 @@ app.get('/', (req, res) => {
 // About page
 app.get('/about', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'about.html'));
+});
+
+// test page
+app.get('/test', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'test.html'));
 });
 
 // API example

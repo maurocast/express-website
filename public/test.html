@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<!-- dati HTML                                                        -->
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fit</title>
+    <link rel="icon" href="./assets/icons/favicon.ico">
+    <link rel="stylesheet" href="/style.css">
+    
+    <!-- Main -->
+   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""></script>
+
+
+</head>
+<script type="module">
+
+    import { fetchFileFit } from "../scripts/fileFit.mjs"
+    import { setGeo } from "../scripts/geoJsonFit.mjs"
+    import { findHills } from "../scripts/hills.mjs"
+    import { setMapIniziale } from "../scripts/setMapIniziale.mjs"
+
+
+    /**
+        import { fncFetch } from "../scripts/routines.mjs"
+        //    import { createGrafico } from "../scripts/get_GraficoAltimetria.mjs";
+        //    import { Race } from "../scripts/Race.mjs"
+        import { setGeo } from "../scripts/GeoJsonFit.mjs"
+        import { setMapIniziale } from "../scripts/SetMapIniziale.mjs"
+        import { getColor } from '../scripts/polyline.mjs'
+        import { dt } from "../scripts/data.mjs";
+        import { setJsonFit } from "../scripts/test.mjs"
+    */
+    /**
+     * test importzione file bin
+     */
+    const getTest = async () => {
+
+        const getUrl = [window.location.origin, 'config.json'].join('/')
+
+        let j = {}
+        j.config = await fetch(getUrl)
+            .then(response => response.json())
+            .then(data => data)
+            .catch(error => console.error('Error fetching config:', error));
+
+        j.fileFit = 'http://localhost:3000/files/2026-09-03-13-04-07.fit'
+
+        const x = await fetchFileFit(j)
+        // Example
+        let hills = await findHills(x.messages.recordMesgs, {
+            minElevationGain: 80,
+            minDistance: 800,
+            minGradient: 2
+        })
+        j.hills = hills
+        j.records = x.messages.recordMesgs
+
+        let data = await setGeo(j).createGeoJson(j)
+
+        await setMapIniziale(j)
+/**
+        j.imagesUrl = [window.location.origin, 'web/assets/images'].join('/') // root 
+
+        const customIcon = L.icon({
+            iconUrl: j.imagesUrl + '/' + 'mountain.svg',                     // icon moutain   
+
+            iconSize: [32, 42],
+            iconAnchor: [16, 42],
+            popupAnchor: [0, -42]
+        });
+        function onEachFeature(feature, layer) {
+            if (feature.geometry && feature.geometry.type == 'MultiLineString') {
+                j.alt = feature.properties.categoriaAltezza
+                layer.options.color = getColor(j)
+            }
+        }
+            */
+        const tableJson = (t) => {
+            let html = '<table>'
+            for (const key in t) {
+                html += '<tr><td>' + key + '</td><td>' + t[key] + '</td></tr>'
+            }
+            html += '</table>'
+            return html
+        }
+        L.geoJSON(JSON.parse(data), {
+            pointToLayer: function (feature, latlng) {
+                return L.marker(latlng, {
+                    //  icon: customIcon
+                    icon: new L.DivIcon({
+                        className: 'circle-with-text' + feature.properties.color,
+                        html: '<span >' + '<span>' + tableJson(feature.properties.hill) + '</span>' + '</span>'
+                    })
+
+                });
+            },
+            //    onEachFeature: onEachFeature
+        }).addTo(j.map);
+
+
+
+    }
+
+
+    document.addEventListener('readystatechange', (event) => {                      // attende caricamento
+        document.readyState === 'complete' ? getTest() : ''                         // Main
+    });
+</script>
+
+<body id='body'>
+
+</body>
+
+
+</html>

@@ -1,4 +1,4 @@
-
+/** 
 const button = document.getElementById('testButton');
 
 button.addEventListener('click', async () => {
@@ -22,3 +22,4 @@ button.addEventListener('click', async () => {
         console.error(error);
     }
 });
+*/
