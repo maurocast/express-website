@@ -2,33 +2,23 @@
  * generazione formato GeoJson from Fit
  * */
 export function setGeo(j) {
+
+    const semicirclesToDegrees=180 / Math.pow(2, 31);                               // trasform number to lat/lng
+    const getColor = (pendenza) => {
+        pendenza<0?pendenza=0:pendenza=pendenza
+        pendenza>15?pendenza=15:pendenza=pendenza
+    return j.config.colorsArr[pendenza.toString()]
+}    
     return {
         async createGeoJson(j) {
             await this.createJ(j)                                                       // create j
             await this.setFeatureCollection(j)                                          // collection
-        //    await this.downloadData(j)                                                  // download se non return
             return JSON.stringify(j.featureCollection)                                  // transformed json
         },
         async createJ(j) {
-            // j.records
-            // j.hills
         },
-        async downloadData(j) {
-
-            const blob = new Blob([JSON.stringify(j.featureCollection)], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const a = document.body.appendChild(
-                Object.assign(document.createElement('a'), {
-                    href: url,
-                    download: "save" + j.dataAMG + ".json"
-                })
-            )
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        },
-        async setFeatureCollection(j) {                                                 // main
-            j.featureCollection = {
+        async setFeatureCollection(j) {                                                 
+        j.featureCollection = {
                 type: "FeatureCollection",                                              // type
                 features:
                     (await this.setPercorso(j))                                         // records
@@ -39,12 +29,12 @@ export function setGeo(j) {
             j.features = []                                                               // features
             j.features.push(
                 {
-                    type: "Feature",                                                // feature
+                    type: "Feature",                                                 // feature
                     properties: {
                     },
                     geometry: {                                                      // lng,lat,altezza
                         type: "LineString",                                          // type
-                        coordinates: await coords(j)                                 // coord
+                        coordinates: await setGeo(j).coords(j)                       // coord
                     }
                 }
             )
@@ -59,15 +49,16 @@ export function setGeo(j) {
                         geometry: {
                             type: "Point",
                             coordinates: [
-                                semicirclesToDegrees(el.endLon),
-                                semicirclesToDegrees(el.endLat),
-                            ]      // coordinates
+                                el.endLon * semicirclesToDegrees,
+                                el.endLat * semicirclesToDegrees,
+                            ]
                         },
                         properties: {
                             color: 'green',
-                            hill: { distance: el.distance ,
-                                elevationGain: el.elevationGain,
-                                averageGradient: el.averageGradient,
+                            hill: {
+                                km: (el.distance/1000).toFixed(1),
+                                altezza: el.elevationGain.toFixed(0),
+                                pend: el.averageGradient.toFixed(1),
                             }                                                 // descrizione
                         }
                     },
@@ -76,37 +67,48 @@ export function setGeo(j) {
                         geometry: {
                             type: "Point",
                             coordinates: [
-                                semicirclesToDegrees(el.startLon),
-                                semicirclesToDegrees(el.startLat),
-                            ]      // coordinates
+                                el.startLon * semicirclesToDegrees,
+                                el.startLat * semicirclesToDegrees,
+                            ]
                         },
                         properties: {
                             color: 'red',
-                            hill: { distance: el.distance ,
+                            hill: {
+                                distance: el.distance,
                                 elevationGain: el.elevationGain,
                                 averageGradient: el.averageGradient,
                             }                                                    // descrizione
                         }
-                    }
+                    },
+                    {
+                        type: "Feature",
+                        geometry: {
+                            type: "LineString",
+                            coordinates: 
+                                el.points.map(r => [
+                                    r.positionLong * semicirclesToDegrees, 
+                                    r.positionLat * semicirclesToDegrees])
+                            
+                        },
+                        properties: {
+                            colorLine: getColor(el.averageGradient.toFixed(0))
+                        }
+                    }    
                 )
             }
             return j.features
-        }
-
-    }
-    function semicirclesToDegrees(semicircles) {
-        return semicircles * (180 / Math.pow(2, 31));
-    }
-    async function coords(j) {
+        },
+        async coords(j) {
         let _ = []
         j.records
             .filter(record => record.positionLat !== undefined && record.positionLong !== undefined)
             .map(record => {
                 _.push([
-                    semicirclesToDegrees(record.positionLong),
-                    semicirclesToDegrees(record.positionLat),
+                    record.positionLong * semicirclesToDegrees,
+                    record.positionLat * semicirclesToDegrees
                 ])
             });
         return _
+        }
     }
 }

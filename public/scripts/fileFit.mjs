@@ -1,7 +1,3 @@
-// Change this:
-// import { Decoder } from "@garmin/fitsdk";
-
-// To this (using a CDN like esm.sh or unpkg):
 import { Decoder,Stream } from "https://esm.sh/@garmin/fitsdk";
 /**
  * Creazione fileFit

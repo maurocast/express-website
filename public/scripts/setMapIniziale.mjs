@@ -1,5 +1,4 @@
 
-
 export async function setMapIniziale(j) {
     
     const setMap = (j) => {

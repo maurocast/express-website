@@ -86,16 +86,26 @@
         6,
         100
     ],
-    "colorsArr": [
-        "greenyellow",
-        "green",
-        "yellow",
-        "orange",
-        "red",
-        "purple",
-        "brown",
-        "black"
-    ],
+    "colorsArr": 
+{
+  "0": "#00FF00",
+  "1": "#22FF00",
+  "2": "#44FF00",
+  "3": "#66FF00",
+  "4": "#88FF00",
+  "5": "#AAFF00",
+  "6": "#CCFF00",
+  "7": "#EEFF00",
+  "8": "#FFEE00",
+  "9": "#FFCC00",
+  "10": "#FFAA00",
+  "11": "#FF8800",
+  "12": "#FF6600",
+  "13": "#FF4400",
+  "14": "#FF2200",
+  "15": "#FF0000"
+}
+,
     "cssClassNames": {
         "headerRow": "cssHeaderRow",
         "tableRow": "cssTableRow",

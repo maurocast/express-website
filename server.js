@@ -8,8 +8,6 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/vendor/leaflet', express.static(path.join(__dirname, 'node_modules', 'leaflet')));
-
 // Serve static website files
 app.use(express.static(path.join(__dirname, 'public')));
 

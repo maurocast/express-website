@@ -87,7 +87,9 @@ export function findHills(records, options = {}) {
             startLat: records[start].positionLat,
             startLon: records[start].positionLong,
             endLat: records[end].positionLat,
-            endLon: records[end].positionLong
+            endLon: records[end].positionLong,
+            points: records.slice(start, end + 1)
+            .map(r => ({  positionLong: r.positionLong,positionLat: r.positionLat }))
         };
     }
     return (hills);
