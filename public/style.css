@@ -99,3 +99,10 @@ footer {
     padding: 3px;
     margin: 3px; 
 }
+.left-menu {
+    background: blue;
+    padding: 5px;
+    border-radius: 8px;
+    border-color: black;
+    border-width: 2px;
+}

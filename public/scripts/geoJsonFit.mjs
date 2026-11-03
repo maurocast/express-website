@@ -8,7 +8,8 @@ export function setGeo(j) {
         pendenza<0?pendenza=0:pendenza=pendenza
         pendenza>15?pendenza=15:pendenza=pendenza
     return j.config.colorsArr[pendenza.toString()]
-}    
+    }    
+    
     return {
         async createGeoJson(j) {
             await this.createJ(j)                                                       // create j

@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="./assets/icons/favicon.ico">
+</head>
+<script type="module">
+    function getTable(j) {
+        return {
+            create: (j) => {
+                j.NomeDellaTabella =                                            // create table
+                    Object.assign(document.createElement('table'), {
+                        id: 'NomeDellaTabella',
+                        className: 'TNomeDellaTabella'
+                    })
+            },
+            slice(j) {
+                j.dataSlice = j.data.slice(j.inizio, j.fine)                    // selezionati
+            },
+            header(j) {
+                j.header = Object.assign(document.createElement('tr'),{
+                    className: 'Theader'
+                })                                                          // header
+                j.NomeDellaTabella.append(j.header)
+                for (let el of j.elementRow) {
+                    j.th = Object.assign(document.createElement('th'),{
+                        className: 'Tth'
+                    })
+                    j.th.innerText = el
+                    j.header.append(j.th)
+                }
+            },
+            tr: (j) => {
+                j.tbody = Object.assign(document.createElement('tbody'),{
+                    className: 'Ttbody'
+                })        // tbody
+                j.ctr = 0
+                while (j.ctr < j.elementTable) {                                // rows
+                    j.tr = Object.assign(document.createElement('tr'), {
+                        id: 'tr' + j.ctr,
+                        className: 'Ttr'
+                    })
+                    j.tbody.append(j.tr)
+                    j.ctd = 0
+                    while (j.ctd < j.elementCount) {
+                        j.td = Object.assign(document.createElement('td'), {
+                            id: 'td' + j.ctd,
+                            onclick: function (e, j) { },
+                            innerText: Object.values(j.dataSlice[j.ctr])[j.ctd],
+                            className: 'Ttd'
+                        })
+                        j.ctd++
+                        j.tr.append(j.td)
+                    }
+                    j.ctr++
+                }
+                while (j.ctr < j.rowDisplay) {                                  // fill empty rows      
+                    j.tr = Object.assign(document.createElement('tr'), {
+                        id: 'tr' + j.ctr,
+                        className: 'TtrHidden'
+                    })
+                    j.tbody.append(j.tr)
+                    j.ctd = 0
+                    while (j.ctd < j.elementCount) {
+                        j.td = Object.assign(document.createElement('td'), {
+                            id: 'td' + j.ctd,
+                            innerText: '-',
+                            className: 'TtdHidden'
+                        })
+                        j.ctd++
+                        j.tr.append(j.td)
+                    }
+                    j.ctr++
+                }
+                j.NomeDellaTabella.append(j.tbody)
+            },
+            span: (j) => {
+                j.span = Object.assign(document.createElement('span'), {
+                    id: 'span',
+                    className: 'Tspan'
+                })
+                j.span.append(Object.assign(document.createElement('span'), {
+                    id: 'spanl',
+                    innerText: ' << ',
+                    j: j,
+                    className: 'Tspanl',
+                    onclick: async function (e) {
+                        if (j.inizio != 0) {
+
+                            document.getElementById('NomeDellaTabella').remove()
+                            document.getElementById('span').remove()
+
+                            j.inizio = e.target.j.inizio - e.target.j.rowDisplay
+                            j.inizio == j.dataLength
+                                ? j.inizio = j.dataLength - 1
+                                : ''
+                            j.fine = j.inizio + j.rowDisplay
+                            j.fine > j.dataLength
+                                ? j.fine = j.dataLength
+                                : ''
+                            j.elementTable = j.fine - j.inizio
+
+                            await createTable(j)
+                        }
+                        else {
+                            document.getElementById('spanerror').innerText = 'Non ci sono più righe da visualizzare'
+                        }
+                    }
+                }))
+                j.span.append(Object.assign(document.createElement('span'), {
+                    innerText: (j.inizio + 1) + ' / ' + j.fine,
+                    className: 'TspanLegenda'
+                }))
+                j.span.append(Object.assign(document.createElement('span'), {
+                    id: 'spanr',
+                    innerText: ' >> ',
+                    j: j,
+                    className: 'Tspanr',
+                    onclick: async function (e) {
+                        if (j.fine != j.dataLength) {
+
+                            document.getElementById('NomeDellaTabella').remove()
+                            document.getElementById('span').remove()
+
+                            j.inizio = e.target.j.inizio + e.target.j.rowDisplay
+                            j.inizio == j.dataLength
+                                ? j.inizio = j.dataLength - 1
+                                : ''
+                            j.fine += e.target.j.rowDisplay
+                            j.fine > j.dataLength
+                                ? j.fine = j.dataLength
+                                : ''
+                            j.elementTable = j.fine - j.inizio
+                            await createTable(j)
+                        }
+                        else {
+                            document.getElementById('spanerror').innerText = 'Non ci sono più righe da visualizzare'
+                        }
+                    }
+                }))
+                j.span.append(Object.assign(document.createElement('br')))
+                j.span.append(Object.assign(document.createElement('span'), {
+                    id: 'spanerror',
+                    innerText: '',
+                    className: 'Tspanerror'
+                }))
+            }
+        }
+    }
+    async function getTableIni() {
+        let j = {
+            data: [
+                { nome: 'Andrea', cognome: 'Rossi', eta: 30 },
+                { nome: 'Bruno', cognome: 'Bianchi', eta: 25 },
+                { nome: 'Carlo', cognome: 'Verdi', eta: 30 },
+                { nome: 'Danilo', cognome: 'Gialli', eta: 25 },
+                { nome: 'Emilio', cognome: 'Zoff', eta: 30 },
+                { nome: 'Franco', cognome: 'Anquetil', eta: 25 },
+                { nome: 'Giovanni', cognome: 'Parodi', eta: 30 },
+                { nome: 'Luigi', cognome: 'Biasotti', eta: 25 },
+                { nome: 'Luciano', cognome: 'Renzi', eta: 30 },
+                { nome: 'Michele', cognome: 'Bilotto', eta: 25 },
+                { nome: 'Mario', cognome: 'Coppia', eta: 30 },
+                { nome: 'Mauro', cognome: 'Bartali', eta: 25 },
+                { nome: 'Norberto', cognome: 'Zunino', eta: 30 },
+                { nome: 'Osvaldo', cognome: 'Melchiorre', eta: 25 },
+                { nome: 'Piero', cognome: 'Gerardi', eta: 30 },
+                { nome: 'Quirino', cognome: 'Solenghi', eta: 25 }
+            ].sort((a, b) => a.cognome.localeCompare(b.cognome)),
+
+            rowDisplay: 5,                                                  // display rows
+        }
+        j.dataLength = j.data.length,                                        // data length
+            j.elementRow = Object.keys(j.data[0])                                // Element header
+        j.elementCount = j.elementRow.length                                 // Element count          
+        j.inizio = 0                                                        // start index
+        j.fine = j.inizio + j.rowDisplay                                      // end index
+        j.elementTable = j.fine - j.inizio                                  // Element table        
+
+        await createTable(j)
+
+    }
+    async function createTable(j) {                                         // create table
+        let fn = getTable(j)
+        await fn.create(j)                                         // table
+        await fn.slice(j)                                          // slice
+        await fn.header(j)                                         // header
+        await fn.tr(j)                                             // rows
+        await fn.span(j)                                           // span
+        document.body.append(j.NomeDellaTabella, j.span)                    // append to
+    }
+    document.addEventListener('readystatechange', (event) => {              // attende caricamento
+        document.readyState === 'complete' ? getTableIni() : ''                         // Main
+    });
+</script>
+
+<body id='body'></body>
+
+</html>

@@ -1,6 +1,7 @@
 
 const express = require('express');
 const path = require('path');
+const fs = require('node:fs/promises');
 
 const app = express();
 
@@ -13,7 +14,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Homepage
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'prova.html'));
 });
 
 // About page
@@ -25,6 +26,10 @@ app.get('/about', (req, res) => {
 app.get('/test', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'test.html'));
 });
+// test page
+app.get('/prova', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'prova.html'));
+});
 
 // API example
 app.get('/api/status', (req, res) => {
@@ -33,6 +38,22 @@ app.get('/api/status', (req, res) => {
         message: 'Express server is running!',
         timestamp: new Date().toISOString()
     });
+});
+
+app.get('/api/files', async (req, res, next) => {
+    try {
+        const entries = await fs.readdir(path.join(__dirname, 'public', 'files'), {
+            withFileTypes: true
+        });
+        const files = entries
+            .filter(entry => entry.isFile())
+            .map(entry => entry.name)
+            .sort();
+
+        res.json(files);
+    } catch (error) {
+        next(error);
+    }
 });
 
 // 404 handler
