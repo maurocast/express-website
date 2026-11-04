@@ -2,7 +2,10 @@ import { getTableIni } from "./getTable.mjs"
 import { fetchFileFit } from "../scripts/fileFit.mjs"
 import { setGeo } from "../scripts/geoJsonFit.mjs"
 import { findHills } from "../scripts/hills.mjs"
+
 export async function setMapIniziale(j) {
+
+    const getFiles=async (j)=>{
     const response = await fetch('/api/files')
     if (!response.ok) {
         throw new Error(`Unable to load file list: ${response.status} ${response.statusText}`)
@@ -12,7 +15,7 @@ export async function setMapIniziale(j) {
     for (let el of j.files1) {
         j.files.push({ file: el })
     }
-
+    }
     const setMap = (j) => {
         return {
             createDiv: (j) => {                                                      // create div
@@ -80,6 +83,7 @@ export async function setMapIniziale(j) {
         return Object.assign(document.createElement(htmlElement), assignment)
     }
     document.body.append(setMap(j).createDiv(j))                                  // divMap
+    await getFiles(j)
     setMap(j).createMap(j)                                                        // create map                                          
     setMap(j).createTileLayer(j)                                                  // tile
     await setMap(j).setControlLeft(j)
