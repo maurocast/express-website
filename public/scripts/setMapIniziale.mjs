@@ -88,7 +88,7 @@ export async function setMapIniziale(j) {
             j.file = e.target.childNodes[0].nodeValue
             if (j.file) {
 
-                j.fileFit = 'http://' + window.location.host + '/files/' + j.file
+                j.fileFit = 'https://' + window.location.host + '/files/' + j.file
 
                 const file = await fetchFileFit(j)
                 // Example
