@@ -1,5 +1,6 @@
 
 const express = require('express');
+const https = require('node:https');
 const path = require('path');
 const fs = require('node:fs/promises');
 
@@ -61,9 +62,16 @@ app.use((req, res) => {
     res.status(404).send('404 - Page Not Found');
 });
 
-// Start server
+// Start HTTPS server
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Express server running on port ${PORT}`);
-});
+(async () => {
+    const [key, cert] = await Promise.all([
+        fs.readFile(path.join(__dirname, 'localhost+2-key.pem')),
+        fs.readFile(path.join(__dirname, 'localhost+2.pem'))
+    ]);
+
+    https.createServer({ key, cert }, app).listen(PORT, '0.0.0.0', () => {
+        console.log(`Express HTTPS server running on https://localhost:${PORT}`);
+    });
+})();
