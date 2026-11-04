@@ -1,6 +1,5 @@
 <!doctype html>
 <html lang="en">
-<!-- dati HTML                                                        -->
 
 <head>
     <meta charset="utf-8">
@@ -34,16 +33,15 @@
             .catch(error => console.error('Error fetching config:', error));
 
         await setMapIniziale(j)
-        let td=document.querySelectorAll('td')
-                        td.forEach((element) => {
-                                element.addEventListener('click', (e) => {
-                                    j.file=element.innerHTML
-                                })
-                        })
-        if(j.file)
-        {
-         
-            j.fileFit = 'http://' + window.location.host + '/files/' +j.file
+        let td = document.querySelectorAll('td')
+        td.forEach((element) => {
+            element.addEventListener('click', (e) => {
+                j.file = element.innerHTML
+            })
+        })
+        if (j.file) {
+
+            j.fileFit = 'http://' + window.location.host + '/files/' + j.file
 
             const file = await fetchFileFit(j)
             // Example
@@ -111,9 +109,9 @@
                 },
                 onEachFeature: onEachFeature
             }).addTo(j.map);
-        }    
+        }
     }
-    
+
     document.addEventListener('readystatechange', (event) => {                      // attende caricamento
         document.readyState === 'complete' ? getTest() : ''                         // Main
     });

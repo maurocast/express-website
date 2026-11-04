@@ -23,13 +23,13 @@ app.get('/about', (req, res) => {
 });
 
 // test page
-app.get('/test', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'test.html'));
-});
-// test page
 app.get('/prova', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'prova.html'));
 });
+// test page
+//app.get('/prova', (req, res) => {
+  //  res.sendFile(path.join(__dirname, 'public', 'prova.html'));
+//});
 
 // API example
 app.get('/api/status', (req, res) => {
