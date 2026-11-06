@@ -101,7 +101,7 @@ export function setGeo(j) {
         },
         async coords(j) {
         let _ = []
-        j.records
+        j.messages.messages.recordMesgs
             .filter(record => record.positionLat !== undefined && record.positionLong !== undefined)
             .map(record => {
                 _.push([

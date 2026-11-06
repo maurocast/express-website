@@ -1,44 +1,49 @@
 export async function getTableIni(j) {                          // Inizializzazione     
-    j.data=j.files
-    j.rowDisplay= 5                                                    // display rows
+    j.data = j.files
+    j.rowDisplay = 5                                                    // display rows
     j.dataLength = j.data.length                                        // data length
     j.elementRow = Object.keys(j.data[0])                                // Element header
     j.elementCount = j.elementRow.length                                 // Element count          
     j.inizio = 0                                                         // start index
     j.fine = j.inizio + j.rowDisplay                                     // end index
-    j.elementTable = j.fine - j.inizio                                   // Element table        
+    j.elementTable = j.fine - j.inizio                                   // Element table
 
-    
-    return await createTable(j)
-
+    let fn = await getTable(j)
+    await fn.create(j)                                         // table
+    await fn.slice(j)                                          // slice
+    await fn.header(j)                                         // header
+    await fn.tr(j)                                             // rows
+    j.rowDisplay <j.dataLength                                 // data length
+    ?await fn.span(j):j.span.innerHTML=''                                       // span
+    return j.idTable.outerHTML+j.span.innerHTML
 }
-function getTable(j) {                                         // create table
+async function getTable(j) {                                         // create table
     return {
-        create: (j) => {
-            j.IdTable =                                            // create table
+        create: async (j) => {
+            j.idTable =                                            // create table
                 Object.assign(document.createElement('table'), {
-                    id: 'IdTable',
-                    className: 'TIdTable'
+                    id: 'idTable',
+                    className: 'TidTable'
                 })
         },
-        slice(j) {
+        slice: async (j) =>{
             j.dataSlice = j.data.slice(j.inizio, j.fine)                    // selezionati
         },
-        header(j) {
-            j.header = Object.assign(document.createElement('tr'),{
+        header: async (j) =>{
+            j.header = Object.assign(document.createElement('tr'), {
                 className: 'Theader'
             })                                                          // header
-            j.IdTable.append(j.header)
+            j.idTable.append(j.header)
             for (let el of j.elementRow) {
-                j.th = Object.assign(document.createElement('th'),{
+                j.th = Object.assign(document.createElement('th'), {
                     className: 'Tth'
                 })
                 j.th.innerText = el
                 j.header.append(j.th)
             }
         },
-        tr: (j) => {
-            j.tbody = Object.assign(document.createElement('tbody'),{
+        tr: async (j) => {
+            j.tbody = Object.assign(document.createElement('tbody'), {
                 className: 'Ttbody'
             })        // tbody
             j.ctr = 0
@@ -47,17 +52,24 @@ function getTable(j) {                                         // create table
                     id: 'tr' + j.ctr,
                     className: 'Ttr',
                 })
+
                 j.tbody.append(j.tr)
                 j.ctd = 0
-                while (j.ctd < j.elementCount) {
-                    j.td = Object.assign(document.createElement('td'), {
-                        id: 'td' + j.ctd,
-                        onclick: function (e, j) { },
-                        innerText: Object.values(j.dataSlice[j.ctr])[j.ctd],
-                        className: 'Ttd'
-                    })
-                    j.ctd++
-                    j.tr.append(j.td)
+                // Ensure the current row exists before processing
+                const rowData = j.dataSlice[j.ctr];
+                if (rowData) {
+                    const rowValues = Object.values(rowData);
+                    while (j.ctd < j.elementCount) {
+                        j.td = Object.assign(document.createElement('td'), {
+                            id: 'td' + j.ctd,
+                            onclick: function (e) { },
+                            // Use the pre-calculated rowValues
+                            innerText: rowValues[j.ctd] ?? '',
+                            className: 'Ttd'
+                        })
+                        j.ctd++
+                        j.tr.append(j.td)
+                    }
                 }
                 j.ctr++
             }
@@ -79,9 +91,9 @@ function getTable(j) {                                         // create table
                 }
                 j.ctr++
             }
-            j.IdTable.append(j.tbody)
+            j.idTable.append(j.tbody)
         },
-        span: (j) => {
+        span: async (j) => {
             j.span = Object.assign(document.createElement('span'), {
                 id: 'span',
                 className: 'Tspan'
@@ -94,7 +106,7 @@ function getTable(j) {                                         // create table
                 onclick: async function (e) {
                     if (j.inizio != 0) {
 
-                        document.getElementById('IdTable').remove()
+                        document.getElementById('idTable').remove()
                         document.getElementById('span').remove()
 
                         j.inizio = e.target.j.inizio - e.target.j.rowDisplay
@@ -126,7 +138,7 @@ function getTable(j) {                                         // create table
                 onclick: async function (e) {
                     if (j.fine != j.dataLength) {
 
-                        document.getElementById('IdTable').remove()
+                        document.getElementById('idTable').remove()
                         document.getElementById('span').remove()
 
                         j.inizio = e.target.j.inizio + e.target.j.rowDisplay
@@ -153,17 +165,4 @@ function getTable(j) {                                         // create table
             }))
         }
     }
-}
-async function createTable(j) {                                // create table
-    let fn = getTable(j)
-    await fn.create(j)                                         // table
-    await fn.slice(j)                                          // slice
-    await fn.header(j)                                         // header
-    await fn.tr(j)                                             // rows
-    await fn.span(j)                                           // span
-    document.body.append(j.IdTable, j.span)                    // append to
-    let _=document.createElement('div')
-    _.append(j.IdTable, j.span)    // append to
-    return _.innerHTML
-    
 }

@@ -1,8 +1,13 @@
 
 const express = require('express');
 const https = require('node:https');
+const net = require('node:net');
+const { execFile } = require('node:child_process');
 const path = require('path');
 const fs = require('node:fs/promises');
+const { promisify } = require('node:util');
+
+const execFileAsync = promisify(execFile);
 
 const app = express();
 
@@ -64,6 +69,77 @@ app.use((req, res) => {
 
 // Start HTTPS server
 const PORT = process.env.PORT || 3000;
+const HOST = '0.0.0.0';
+
+async function isAddressInUse(port, host) {
+    return new Promise((resolve, reject) => {
+        const tester = net.createServer();
+
+        tester.once('error', (error) => {
+            if (error.code === 'EADDRINUSE') {
+                resolve(true);
+            } else {
+                reject(error);
+            }
+        });
+
+        tester.once('listening', () => {
+            tester.close(() => resolve(false));
+        });
+
+        tester.listen(port, host);
+    });
+}
+
+async function getListeningProcessIds(port) {
+    if (process.platform === 'win32') {
+        const { stdout } = await execFileAsync('netstat.exe', ['-ano', '-p', 'tcp']);
+        const processIds = stdout.split(/\r?\n/).flatMap((line) => {
+            const columns = line.trim().split(/\s+/);
+            if (columns[0] !== 'TCP' || columns[3] !== 'LISTENING') {
+                return [];
+            }
+
+            const localPort = Number(columns[1].slice(columns[1].lastIndexOf(':') + 1));
+            const processId = Number(columns[4]);
+            return localPort === Number(port) && Number.isSafeInteger(processId) && processId > 0
+                ? [processId]
+                : [];
+        });
+        return [...new Set(processIds)];
+    }
+
+    try {
+        const { stdout } = await execFileAsync('lsof', [
+            '-nP', '-t', `-iTCP:${port}`, '-sTCP:LISTEN'
+        ]);
+        return [...new Set(stdout.trim().split(/\s+/).filter(Boolean).map(Number))];
+    } catch (error) {
+        if (error.code === 1 && !error.stdout) {
+            return [];
+        }
+        throw error;
+    }
+}
+
+async function stopListeningProcesses(port) {
+    const processIds = await getListeningProcessIds(port);
+    if (processIds.length === 0) {
+        throw new Error(`Could not identify the process using port ${port}.`);
+    }
+
+    for (const processId of processIds) {
+        if (processId === process.pid) {
+            continue;
+        }
+
+        if (process.platform === 'win32') {
+            await execFileAsync('taskkill.exe', ['/PID', String(processId), '/F']);
+        } else {
+            process.kill(processId, 'SIGTERM');
+        }
+    }
+}
 
 (async () => {
     const [key, cert] = await Promise.all([
@@ -71,7 +147,25 @@ const PORT = process.env.PORT || 3000;
         fs.readFile(path.join(__dirname, 'localhost+2.pem'))
     ]);
 
-    https.createServer({ key, cert }, app).listen(PORT, '0.0.0.0', () => {
+    const addressInUse = await isAddressInUse(PORT, HOST);
+
+    if (addressInUse) {
+        console.warn(`Address ${HOST}:${PORT} is already in use. Stopping the process using port ${PORT}.`);
+        await stopListeningProcesses(PORT);
+    }
+
+    const server = https.createServer({ key, cert }, app);
+
+    server.on('error', (error) => {
+        if (error.code === 'EADDRINUSE') {
+            console.error(`Address ${HOST}:${PORT} is already in use. Please stop the existing process or change PORT.`);
+            process.exit(1);
+        }
+
+        throw error;
+    });
+
+    server.listen(PORT, HOST, () => {
         console.log(`Express HTTPS server running on https://localhost:${PORT}`);
     });
 })();

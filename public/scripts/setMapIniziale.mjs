@@ -1,24 +1,28 @@
 import { getTableIni } from "./getTable.mjs"
-import { fetchFileFit } from "../scripts/fileFit.mjs"
-import { setGeo } from "../scripts/geoJsonFit.mjs"
-import { findHills } from "../scripts/hills.mjs"
+import { fetchFileFit } from "./fileFit.mjs"
+import { setGeo } from "./geoJsonFit.mjs"
+import { findHills } from "./hills.mjs"
 
 export async function setMapIniziale(j) {
 
-    const getFiles=async (j)=>{
-    const response = await fetch('/api/files')
-    if (!response.ok) {
-        throw new Error(`Unable to load file list: ${response.status} ${response.statusText}`)
+    j.geoLayerGroup = new L.layerGroup                                                // layer da geo
+
+    const getFiles = async (j) => {                                                 // lettura files da files
+        const response = await fetch('/api/files')
+        if (response.ok) {                                                      // se ok
+            let _ = await response.json()
+            j.files = []                                                        // files da inviare a tabella
+            for (let el of _) {
+                j.files.push({ file: el })
+            }
+        }
+        return await getTableIni(j)                                             // tableInnerHtml
+
     }
-    j.files1 = await response.json()
-    j.files = []
-    for (let el of j.files1) {
-        j.files.push({ file: el })
-    }
-    }
-    const setMap = (j) => {
+
+    const setMap = (j) => {                                                         // j.map
         return {
-            createDiv: (j) => {                                                      // create div
+            createDiv: (j) => {                                                     // create div
                 if (!document.getElementById(j.config.mapIniziale.divMap)) {
                     j.divMap = objAss('div', { className: 'divMap', id: 'divMap' })
                     return j.divMap
@@ -32,46 +36,23 @@ export async function setMapIniziale(j) {
                     { attribution: j.config.mapIniziale.attribution })
                     .addTo(j.map)
             },
-            setControlLeft: async (j) => {
-                let table = await getTableIni(j)                                                       // control Menu
+            setControlLeft: async (j) => {                                          // left control
                 const ControlLeftMenu = L.Control.extend({
                     onAdd: () => {
-                        j.container = objAss('div', {
+                        j.container = objAss('div', {                               // container
                             className: 'left-menu',
                             id: 'container',
-                            onclick: (e) => {
-                                L.DomEvent.stopPropagation(e)
-                            }
                         })
-
                         j.container.append(
-                            Object.assign(objAss('table', {
-                                className: '',
-                                id: 'idTable',
-                                innerHTML: table
+                            Object.assign(objAss('div', {                         // table
+                                id: 'idTableDiv',
+                                innerHTML: j.tableFilesInnerHtml
                             })),
-                            Object.assign(objAss('button', {
+                            Object.assign(objAss('button', {                        // button
                                 id: 'btnVisualize',
                                 innerText: 'Visualizza',
-                                onclick: (e) => {
-                                    // Source - https://stackoverflow.com/a/22754453
-                                    // Posted by jfriend00, modified by community. See post 'Timeline' for change history
-                                    // Retrieved 2026-11-04, License - CC BY-SA 4.0
-
-                                    var list = document.getElementsByClassName("Ttr");
-                                    for (let item of list) {
-                                        item.selected
-                                            ? console.log(item.selected) : '';
-                                    }
-
-                                    j.file = _[0].file
-                                    L.DomEvent.stopPropagation(e)
-
-                                }
-                            })
-                            )
+                            }))
                         )
-
                         return j.container;
                     }
                 });
@@ -79,88 +60,102 @@ export async function setMapIniziale(j) {
             },
         }
     }
+
     function objAss(htmlElement, assignment) {
         return Object.assign(document.createElement(htmlElement), assignment)
     }
-    document.body.append(setMap(j).createDiv(j))                                  // divMap
-    await getFiles(j)
-    setMap(j).createMap(j)                                                        // create map                                          
-    setMap(j).createTileLayer(j)                                                  // tile
-    await setMap(j).setControlLeft(j)
+
+    document.body.append(
+        setMap(j).createDiv(j)                                                      // divMap
+    )
+    j.tableFilesInnerHtml = await getFiles(j)                                         // files per map
+
+    setMap(j).createMap(j)                                                          // create map                                          
+    setMap(j).createTileLayer(j)                                                    // tile
+    await setMap(j).setControlLeft(j)                                               // left
     document.querySelectorAll('tr').forEach(el => {
         el.addEventListener("click", async e => {
-            j.file = e.target.childNodes[0].nodeValue
-            if (j.file) {
-
-                j.fileFit = 'https://' + window.location.host + '/files/' + j.file
-
-                const file = await fetchFileFit(j)
-                // Example
-                let hills = await findHills(file.messages.recordMesgs, {
-                    minElevationGain: 50,
-                    minDistance: 500,
-                    minGradient: 2
-                })
-                j.hills = hills
-                j.records = file.messages.recordMesgs
-
-                let data = await setGeo(j).createGeoJson(j)
-
-
-                const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
-                const url = URL.createObjectURL(blob);
-                const a = document.body.appendChild(
-                    Object.assign(document.createElement('a'), {
-                        href: url,
-                        download: "save" + ".json"
-                    })
-                )
-                //    a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-
-
-
-
-
-                function onEachFeature(feature, layer) {
-                    if (feature.geometry && feature.properties.colorLine) {
-                        layer.options.color = feature.properties.colorLine
-                    }
-                }
-
-                const tableJson = (t) => {
-                    let html = '<table>'
-                    for (const key in t) {
-                        html += '<tr><td>' + key + '</td><td>' + t[key] + '</td></tr>'
-                    }
-                    html += '</table>'
-                    return html
-                }
-                L.geoJSON(JSON.parse(data), {
-                    pointToLayer: function (feature, latlng) {
-                        if (feature.properties.color == 'green') {
-                            return L.marker(latlng, {
-                                icon: new L.DivIcon({
-                                    className: 'circle-with-text' + feature.properties.color,
-                                    iconSize: null,
-                                    html: '<span >' + '<span>' + tableJson(feature.properties.hill) + '</span>' + '</span>'
-                                })
-                            });
-                        }
-                        if (feature.properties.color == 'red') {
-                            return L.marker(latlng, {
-                                icon: new L.DivIcon({
-                                    className: 'circle-with-text' + feature.properties.color,
-                                    iconSize: null,
-                                    html: '<span >' + 'start' + '</span>'
-                                })
-                            });
-                        }
-                    },
-                    onEachFeature: onEachFeature
-                }).addTo(j.map);
-            }
+            j.geoLayerGroup.clearLayers()
+            await useGeoData(e, j)                                                     // geoData
+            j.geoLayerGroup.addTo(j.map)
         })
     })
+    async function useGeoData(e, j) {
+
+        j.file = await loadFile(j)
+        j.hills = await findHills(j)
+        j.dataJson = await setGeo(j).createGeoJson(j)                         // geoData
+        await fitMap(j)
+        j.descriptionIcons = await getDescriptionIconsGreen(j)
+        await useGeoJsonData(j)
+        async function loadFile(j) {
+            j.file = e.target.childNodes[0].nodeValue
+            j.fileFit = window.location.origin + '/files/' + j.file             // da elaborare
+            j.messages = await fetchFileFit(j)                                  // elaborazione
+        }
+        async function fitMap(j) {
+            const tempLayer = L.geoJSON(JSON.parse(j.dataJson));                      // center
+            j.map.fitBounds(tempLayer.getBounds(), {
+                padding: [20, 20]
+            });
+        }
+        async function getDescriptionIconsGreen(j) {
+            let result = []
+            const tmpLayer = JSON.parse(j.dataJson)
+            for (const feature of tmpLayer.features) {
+                if (feature.properties.color == 'green') {
+                    j.files = Array(feature.properties.hill)
+                    let _ = await getTableIni(j)
+                    result.push(_)
+                }
+            }
+            return result
+        }
+        async function useGeoJsonData(j) {
+            let ct = 0
+            for (const feature of JSON.parse(j.dataJson).features) {
+                L.geoJson(feature, {
+                    filter: function (feature) {
+                        return feature.geometry.type === 'Point';
+                    },
+                    style: function (feature) {
+                        return {
+                            color: feature.properties.color
+                        };
+                    }
+                });
+                if (feature.properties.color == 'green') {
+                    L.marker([feature.geometry.coordinates[1],feature.geometry.coordinates[0]], {
+                        icon: new L.DivIcon({
+                            className: 'circle-with-text' + feature.properties.color,
+                            iconSize: null,
+                            html: '<span >' + '<span>' + j.descriptionIcons[ct] + '</span>' + '</span>'
+                        })
+                    }).addTo(j.geoLayerGroup);
+                    ct++
+                }
+                if (feature.properties.color == 'red') {
+                    L.marker([feature.geometry.coordinates[1],feature.geometry.coordinates[0]], {
+                        icon: new L.DivIcon({
+                            className: 'circle-with-text' + feature.properties.color,
+                            iconSize: null,
+                            html: '<span >' + 'start' + '</span>'
+                        })
+                    }).addTo(j.geoLayerGroup);
+                }
+            }
+            for (const feature of JSON.parse(j.dataJson).features) {
+                L.geoJson(feature, {
+                    filter: function (feature) {
+                        return feature.geometry.type === 'LineString';
+                    },
+                    style: function (feature) {
+                        return {
+                            color: feature.properties.colorLine
+                        };
+                    }
+                }).addTo(j.geoLayerGroup);
+            }
+        }    
+    }
 }

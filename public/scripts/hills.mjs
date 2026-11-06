@@ -1,19 +1,19 @@
 
 
-export function findHills(records, options = {}) {
-    const {
-        minElevationGain = 15, // metres
-        minDistance = 100,     // metres
-        minGradient = 2,       // percent
-        smoothingWindow = 5
-    } = options;
-
+export async function findHills(j) {
+    const records=j.messages.messages.recordMesgs
+    const o = {
+        minElevationGain: 25,                           // elevation
+        minDistance: 500,                               // distance
+        minGradient: 2,                                 // pendenza    
+        smoothingWindow : 5                             // smooting
+    }
     // Smooth altitude to reduce GPS noise
     const smooth = records.map((r, i) => {
-        const start = Math.max(0, i - smoothingWindow);
+        const start = Math.max(0, i - o.smoothingWindow);
         const end = Math.min(
             records.length,
-            i + smoothingWindow + 1
+            i + o.smoothingWindow + 1
         );
 
         const values = records
@@ -60,9 +60,9 @@ export function findHills(records, options = {}) {
 
     function isValidHill(hill) {
         return hill &&
-            hill.elevationGain >= minElevationGain &&
-            hill.distance >= minDistance &&
-            hill.averageGradient >= minGradient;
+            hill.elevationGain >=o.minElevationGain &&
+            hill.distance >= o.minDistance &&
+            hill.averageGradient >= o.minGradient;
     }
 
     function calculateHill(records, elevations, start, end) {
@@ -89,7 +89,7 @@ export function findHills(records, options = {}) {
             endLat: records[end].positionLat,
             endLon: records[end].positionLong,
             points: records.slice(start, end + 1)
-            .map(r => ({  positionLong: r.positionLong,positionLat: r.positionLat }))
+                .map(r => ({ positionLong: r.positionLong, positionLat: r.positionLat }))
         };
     }
     return (hills);
