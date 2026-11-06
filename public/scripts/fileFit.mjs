@@ -1,3 +1,4 @@
+/***/
 import { Decoder,Stream } from "https://esm.sh/@garmin/fitsdk";
 /**
  * Creazione fileFit

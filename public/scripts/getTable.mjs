@@ -1,3 +1,4 @@
+/***/
 export async function getTableIni(j) {                          // Inizializzazione     
     j.data = j.files
     j.rowDisplay = 5                                                    // display rows
