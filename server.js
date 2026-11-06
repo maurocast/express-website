@@ -1,6 +1,5 @@
 
 const express = require('express');
-const https = require('node:https');
 const net = require('node:net');
 const { execFile } = require('node:child_process');
 const path = require('path');
@@ -67,7 +66,7 @@ app.use((req, res) => {
     res.status(404).send('404 - Page Not Found');
 });
 
-// Start HTTPS server
+// Start HTTP server
 const PORT = process.env.PORT || 3000;
 const HOST = '0.0.0.0';
 
@@ -142,11 +141,6 @@ async function stopListeningProcesses(port) {
 }
 
 (async () => {
-    const [key, cert] = await Promise.all([
-        fs.readFile(path.join(__dirname, 'localhost+2-key.pem')),
-        fs.readFile(path.join(__dirname, 'localhost+2.pem'))
-    ]);
-
     const addressInUse = await isAddressInUse(PORT, HOST);
 
     if (addressInUse) {
@@ -154,7 +148,9 @@ async function stopListeningProcesses(port) {
         await stopListeningProcesses(PORT);
     }
 
-    const server = https.createServer({ key, cert }, app);
+    const server = app.listen(PORT, HOST, () => {
+        console.log(`Express HTTP server running on http://localhost:${PORT}`);
+    });
 
     server.on('error', (error) => {
         if (error.code === 'EADDRINUSE') {
@@ -163,9 +159,5 @@ async function stopListeningProcesses(port) {
         }
 
         throw error;
-    });
-
-    server.listen(PORT, HOST, () => {
-        console.log(`Express HTTPS server running on https://localhost:${PORT}`);
     });
 })();
