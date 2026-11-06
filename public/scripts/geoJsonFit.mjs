@@ -1,4 +1,3 @@
-/***/
 /**
  * generazione formato GeoJson from Fit
  * */
@@ -8,7 +7,7 @@ export function setGeo(j) {
     const getColor = (pendenza) => {
         pendenza<0?pendenza=0:pendenza=pendenza
         pendenza>15?pendenza=15:pendenza=pendenza
-    return j.config.colorsArr[pendenza.toString()]
+        return j.config.colorsArr[pendenza.toString()]
     }    
     
     return {
@@ -28,23 +27,38 @@ export function setGeo(j) {
             }
         },
         async setPercorso(j) {
-            j.features = []                                                               // features
+            j.features = []                                                          // features
             j.features.push(
                 {
                     type: "Feature",                                                 // feature
                     properties: {
+                         colorLine: 'white'                                          // white   
                     },
                     geometry: {                                                      // lng,lat,altezza
                         type: "LineString",                                          // type
                         coordinates: await setGeo(j).coords(j)                       // coord
                     }
-                }
+                },
+                {
+                        type: "Feature",
+                        geometry: {
+                            type: "Point",
+                            coordinates: [
+                                j.messages.messages.recordMesgs[0].positionLong * semicirclesToDegrees,
+                                j.messages.messages.recordMesgs[0].positionLat * semicirclesToDegrees
+                            ]
+                        },
+                        properties: {
+                            color: 'red',
+                            hill: {}                                                  // descrizione
+                        }
+                    },
             )
-            return j.features                                           // features
+            return j.features                                                       // features
         },
         async setSalite(j) {
             j.features = []
-            for (let el of j.hills) {                                                      // milestone
+            for (let el of j.hills) {                                              // milestone
                 j.features.push(
                     {
                         type: "Feature",

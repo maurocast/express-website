@@ -4,7 +4,7 @@ export async function findHills(j) {
     const records=j.messages.messages.recordMesgs
     const o = {
         minElevationGain: 25,                           // elevation
-        minDistance: 500,                               // distance
+        minDistance: 1000,                              // distance
         minGradient: 2,                                 // pendenza    
         smoothingWindow : 5                             // smooting
     }

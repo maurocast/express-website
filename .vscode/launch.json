@@ -23,8 +23,8 @@
         },
        
         {
-            "name": "server.js",
-            "program": "${workspaceFolder}/server.js",
+            "name": "serverHttps.js",
+            "program": "${workspaceFolder}/serverHtpps.js",
             "request": "launch",
             "skipFiles": [
                 "<node_internals>/**"

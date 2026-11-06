@@ -1,4 +1,4 @@
-/***/
+
 import { getTableIni } from "./getTable.mjs"
 import { fetchFileFit } from "./fileFit.mjs"
 import { setGeo } from "./geoJsonFit.mjs"
@@ -18,7 +18,6 @@ export async function setMapIniziale(j) {
             }
         }
         return await getTableIni(j)                                             // tableInnerHtml
-
     }
 
     const setMap = (j) => {                                                         // j.map
@@ -81,6 +80,7 @@ export async function setMapIniziale(j) {
             j.geoLayerGroup.addTo(j.map)
         })
     })
+    
     async function useGeoData(e, j) {
 
         j.file = await loadFile(j)
@@ -152,7 +152,10 @@ export async function setMapIniziale(j) {
                     },
                     style: function (feature) {
                         return {
-                            color: feature.properties.colorLine
+                            color: feature.properties.colorLine,
+                            weight: 6,
+                            fillopacity: 0.75
+
                         };
                     }
                 }).addTo(j.geoLayerGroup);
