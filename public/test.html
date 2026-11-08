@@ -33,12 +33,6 @@
             .catch(error => console.error('Error fetching config:', error));
 
         await setMapIniziale(j)
-        let td = document.querySelectorAll('td')
-        td.forEach((element) => {
-            element.addEventListener('click', (e) => {
-                j.file = element.innerHTML
-            })
-        })
         if (j.file) {
 
             j.fileFit = 'https://' + window.location.host + '/files/' + j.file

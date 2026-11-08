@@ -36,7 +36,8 @@ export async function setMapIniziale(j) {
                     { attribution: j.config.mapIniziale.attribution })
                     .addTo(j.map)
             },
-            setControlLeft: async (j) => {                                          // left control
+            setControlLeft: async (j) => {
+                j.tableFiles = await getTableIni(j)                                     // left control
                 const ControlLeftMenu = L.Control.extend({
                     onAdd: () => {
                         j.container = objAss('div', {                               // container
@@ -44,14 +45,11 @@ export async function setMapIniziale(j) {
                             id: 'container',
                         })
                         j.container.append(
-                            Object.assign(objAss('div', {                         // table
-                                id: 'idTableDiv',
-                                innerHTML: j.tableFilesInnerHtml
-                            })),
-                            Object.assign(objAss('button', {                        // button
+                            j.tableFiles,
+                            objAss('button', {                                      // button
                                 id: 'btnVisualize',
                                 innerText: 'Visualizza',
-                            }))
+                            })
                         )
                         return j.container;
                     }
@@ -73,15 +71,20 @@ export async function setMapIniziale(j) {
     setMap(j).createMap(j)                                                          // create map                                          
     setMap(j).createTileLayer(j)                                                    // tile
     await setMap(j).setControlLeft(j)                                               // left
-    document.querySelectorAll('tr').forEach(el => {
-        el.addEventListener("click", async e => {
-            j.geoLayerGroup.clearLayers()
-            await useGeoData(e, j)                                                     // geoData
-            j.geoLayerGroup.addTo(j.map)
+    j.container.addEventListener("click", async e => {
+        const row = e.target.closest('.tTr')
+        if (!row) return
+
+        j.geoLayerGroup.clearLayers()
+        await useGeoData(row, {
+            config: j.config,
+            map: j.map,
+            geoLayerGroup: j.geoLayerGroup
         })
+        j.geoLayerGroup.addTo(j.map)
     })
-    
-    async function useGeoData(e, j) {
+
+async function useGeoData(e, j) {
 
         j.file = await loadFile(j)
         j.hills = await findHills(j)
@@ -90,7 +93,7 @@ export async function setMapIniziale(j) {
         j.descriptionIcons = await getDescriptionIconsGreen(j)
         await useGeoJsonData(j)
         async function loadFile(j) {
-            j.file = e.target.childNodes[0].nodeValue
+            j.file = e.cells[0].textContent.trim()
             j.fileFit = window.location.origin + '/files/' + j.file             // da elaborare
             j.messages = await fetchFileFit(j)                                  // elaborazione
         }
@@ -126,17 +129,17 @@ export async function setMapIniziale(j) {
                     }
                 });
                 if (feature.properties.color == 'green') {
-                    L.marker([feature.geometry.coordinates[1],feature.geometry.coordinates[0]], {
+                    L.marker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], {
                         icon: new L.DivIcon({
                             className: 'circle-with-text' + feature.properties.color,
                             iconSize: null,
-                            html: '<span >' + '<span>' + j.descriptionIcons[ct] + '</span>' + '</span>'
+                            html: '<span >' + '<span>' + j.descriptionIcons[ct].outerHTML + '</span>' + '</span>'
                         })
                     }).addTo(j.geoLayerGroup);
                     ct++
                 }
                 if (feature.properties.color == 'red') {
-                    L.marker([feature.geometry.coordinates[1],feature.geometry.coordinates[0]], {
+                    L.marker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], {
                         icon: new L.DivIcon({
                             className: 'circle-with-text' + feature.properties.color,
                             iconSize: null,
@@ -155,11 +158,11 @@ export async function setMapIniziale(j) {
                             color: feature.properties.colorLine,
                             weight: 6,
                             fillopacity: 0.75
-
                         };
                     }
                 }).addTo(j.geoLayerGroup);
             }
-        }    
-    }
+        }
+        return j.geoLayerGroup
+}
 }
