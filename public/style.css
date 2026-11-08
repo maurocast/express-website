@@ -99,6 +99,17 @@ footer {
     padding: 3px;
     margin: 3px; 
 }
+.circle-with-textwhite {
+    background-color: blue;
+    border: 2px solid #fff;
+    border-radius: 10%;
+    color: white;
+    text-align: center;
+    font-weight: bold;
+    font-size: 9px;
+    padding: 3px;
+    margin: 3px; 
+}
 .left-menu {
     background: blue;
     padding: 5px;

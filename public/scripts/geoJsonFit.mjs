@@ -2,22 +2,19 @@
  * generazione formato GeoJson from Fit
  * */
 export function setGeo(j) {
-
     const semicirclesToDegrees=180 / Math.pow(2, 31);                               // trasform number to lat/lng
     const getColor = (pendenza) => {
         pendenza<0?pendenza=0:pendenza=pendenza
         pendenza>15?pendenza=15:pendenza=pendenza
         return j.config.colorsArr[pendenza.toString()]
     }    
-    
     return {
         async createGeoJson(j) {
-            await this.createJ(j)                                                       // create j
+        //    await this.createJ(j)                                                       // create j
             await this.setFeatureCollection(j)                                          // collection
             return JSON.stringify(j.featureCollection)                                  // transformed json
         },
-        async createJ(j) {
-        },
+    //    async createJ(j) {},
         async setFeatureCollection(j) {                                                 
         j.featureCollection = {
                 type: "FeatureCollection",                                              // type
@@ -77,7 +74,7 @@ export function setGeo(j) {
                                 pend: el.averageGradient.toFixed(1),
                             }                                                 // descrizione
                         }
-                    },
+                    }, // arrivo
                     {
                         type: "Feature",
                         geometry: {
@@ -95,7 +92,7 @@ export function setGeo(j) {
                                 averageGradient: el.averageGradient,
                             }                                                    // descrizione
                         }
-                    },
+                    }, // partenza 
                     {
                         type: "Feature",
                         geometry: {
@@ -103,7 +100,8 @@ export function setGeo(j) {
                             coordinates: 
                                 el.points.map(r => [
                                     r.positionLong * semicirclesToDegrees, 
-                                    r.positionLat * semicirclesToDegrees])
+                                    r.positionLat * semicirclesToDegrees,
+                                r.distance])
                             
                         },
                         properties: {
@@ -121,7 +119,8 @@ export function setGeo(j) {
             .map(record => {
                 _.push([
                     record.positionLong * semicirclesToDegrees,
-                    record.positionLat * semicirclesToDegrees
+                    record.positionLat * semicirclesToDegrees,
+                    record.distance
                 ])
             });
         return _

@@ -9,6 +9,9 @@ const { promisify } = require('node:util');
 const execFileAsync = promisify(execFile);
 
 const app = express();
+const geocoderPromise = import('node-geocoder').then(({ default: NodeGeocoder }) =>
+    NodeGeocoder({ provider: 'openstreetmap' })
+);
 
 // Middleware
 app.use(express.json());
@@ -60,6 +63,7 @@ app.get('/api/files', async (req, res, next) => {
         next(error);
     }
 });
+
 
 // 404 handler
 app.use((req, res) => {
