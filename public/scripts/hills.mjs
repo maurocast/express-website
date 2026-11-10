@@ -1,12 +1,12 @@
 /***/
 
 export async function findHills(j) {
-    const records=j.messages.messages.recordMesgs
+    const records = j.messages.messages.recordMesgs
     const o = {
-        minElevationGain: 25,                           // elevation
-        minDistance: 1000,                              // distance
-        minGradient: 2,                                 // pendenza    
-        smoothingWindow : 5                             // smooting
+        minElevationGain: 15,                           // elevation
+        minDistance: 10,                                 // distance
+        minGradient: 1,                                 // pendenza    
+        smoothingWindow: 5                              // smooting
     }
     // Smooth altitude to reduce GPS noise
     const smooth = records.map((r, i) => {
@@ -26,6 +26,7 @@ export async function findHills(j) {
 
     // Detect continuous uphill sections
     const hills = [];
+    const lowlands = [];
     let start = null;
     let peak = null;
 
@@ -54,13 +55,11 @@ export async function findHills(j) {
         const climb = calculateHill(
             records, smooth, start, peak
         );
-
-        if (isValidHill(climb)) hills.push(climb);
     }
 
     function isValidHill(hill) {
         return hill &&
-            hill.elevationGain >=o.minElevationGain &&
+            hill.elevationGain >= o.minElevationGain &&
             hill.distance >= o.minDistance &&
             hill.averageGradient >= o.minGradient;
     }
@@ -89,8 +88,37 @@ export async function findHills(j) {
             endLat: records[end].positionLat,
             endLon: records[end].positionLong,
             points: records.slice(start, end + 1)
-                .map(r => ({ positionLong: r.positionLong, positionLat: r.positionLat }))
+                .map(r => ({
+                    positionLong: r.positionLong,
+                    positionLat: r.positionLat
+                })
+                ),
+            start: start,
+            end: end
         };
     }
-    return (hills);
+    function calculateLowland(hills, records) {
+        let start,end
+        for (let climb of hills) {
+            let next = hills[lowlands.length + 1]
+            
+            start=lowlands.length == 0 ? 0 : climb.end + 1
+            end=next?next.start - 1:records.length - 1
+            
+            lowlands.push(function (start, end,records) {
+                return {
+                    distance: {
+                        distancestart:records[start].distance,
+                        distanceend:records[end].distance},
+                    points: records.slice(start, end).filter(el => el.positionLat)
+                        .map(r => ({
+                            positionLong: r.positionLong,
+                            positionLat: r.positionLat
+                        }))
+                }
+            }(start,end,records))
+        }
+    }
+    calculateLowland(hills, records);                                           // no salite
+    return ([hills, lowlands]);
 }

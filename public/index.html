@@ -9,31 +9,37 @@
     <link rel="icon" href="./assets/icons/favicon.ico">
 
     <link rel="stylesheet" href="/style.css">
-    
+    <!-- Main -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
+
 </head>
 
 <body>
+   <script type="module">
+    import { setMapIniziale } from "../scripts/setMapIniziale.mjs"
 
-    <header>
-        <nav>
-            <img src="./assets/icons/favicon.ico" alt="logo" class="logo">
-            <h2>website</h2>
-            <div>
-                <a href="/">Home</a>
-                <a href="/about">About</a>
-                <a href="/test.html">Test</a>
-            </div>
-        </nav>
-    </header>
+    const main = async () => {
 
-    <main class="hero">
-    </main>
+        const getUrl = [window.location.origin, 'config.json'].join('/')
 
-    <footer>
-        <p>© 2026 website</p>
-    </footer>
+        let j = {}
+        j.config = await fetch(getUrl)
+            .then(response => response.json())
+            .then(data => data)
+            .catch(error => console.error('Error fetching config:', error));
 
-    <script src="/app.js"></script>
+        await setMapIniziale(j)
+    }
+    document.addEventListener('readystatechange', (event) => {                      // attende caricamento
+        document.readyState === 'complete' ? main() : ''                            // Main
+    });
+    </script> 
 
 </body>
 </html>

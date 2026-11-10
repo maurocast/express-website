@@ -16,7 +16,6 @@
     <script
         src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
 
-
     </head>
 <script type="module">
 
@@ -38,6 +37,8 @@
             .catch(error => console.error('Error fetching config:', error));
 
         await setMapIniziale(j)
+    
+        /** 
         if (j.file) {
 
             j.fileFit = 'https://' + window.location.host + '/files/' + j.file
@@ -105,6 +106,8 @@
                 onEachFeature: onEachFeature
             }).addTo(j.map);
         }
+    
+    */
     }
 
     document.addEventListener('readystatechange', (event) => {                      // attende caricamento
