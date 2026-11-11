@@ -25,8 +25,8 @@ export async function findHills(j) {
     });
 
     // Detect continuous uphill sections
-    const hills = [];
-    const lowlands = [];
+    j.hills = [];
+    j.lowLands = [];
     let start = null;
     let peak = null;
 
@@ -42,7 +42,7 @@ export async function findHills(j) {
             );
 
             if (isValidHill(climb)) {
-                hills.push(climb);
+                j.hills.push(climb);
             }
 
             start = null;
@@ -97,15 +97,15 @@ export async function findHills(j) {
             end: end
         };
     }
-    function calculateLowland(hills, records) {
+    function calculateLowland(j, records) {
         let start,end
-        for (let climb of hills) {
-            let next = hills[lowlands.length + 1]
+        for (let climb of j.hills) {
+            let next = j.hills[j.hills.length + 1]
             
-            start=lowlands.length == 0 ? 0 : climb.end + 1
+            start=j.lowLands.length == 0 ? 0 : climb.end + 1
             end=next?next.start - 1:records.length - 1
             
-            lowlands.push(function (start, end,records) {
+            j.lowLands.push(function (start, end,records) {
                 return {
                     distance: {
                         distancestart:records[start].distance,
@@ -119,6 +119,5 @@ export async function findHills(j) {
             }(start,end,records))
         }
     }
-    calculateLowland(hills, records);                                           // no salite
-    return ([hills, lowlands]);
+    calculateLowland(j, records);                                           // no salite
 }

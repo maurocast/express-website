@@ -19,7 +19,7 @@ export function setGeo(j) {
                 features:
                     (await this.setInizio(j))                                           // point Iizio
                         .concat(await this.setSalite(j))                                // salite
-                        .concat(await this.setlowLands(j))                              // lowlands
+                        .concat(await this.setlowLands(j))                              // lowLands
                     }
         },
         async setInizio(j) {
