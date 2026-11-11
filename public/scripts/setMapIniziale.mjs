@@ -8,10 +8,6 @@ import { useGeoJsonData } from "./useGeoJonData.mjs"
 
 export async function setMapIniziale(j) {
 
-    j.geoLayerGroup = new L.layerGroup                                          // layer da geo
-
-
-
     const setMap = (j) => {                                                             // j.map
         return {
             createDiv: (j) => {                                                         // create div
@@ -29,7 +25,7 @@ export async function setMapIniziale(j) {
                     { attribution: j.config.mapIniziale.attribution })
                     .addTo(j.map)
             },
-            getFiles: async (j) => {                                             // lettura files da files
+            getFiles: async (j) => {                                                    // lettura files da files
                 const response = await fetch('/api/files')
                 if (response.ok) {                                                      // se ok
                     let _ = await response.json()
@@ -38,6 +34,7 @@ export async function setMapIniziale(j) {
                     }
                     )
                 }
+            
             },
             setControlLeft: async (j) => {
                 j.tableFiles = await getTableIni(j)                                     // left control
@@ -56,10 +53,10 @@ export async function setMapIniziale(j) {
                 return new ControlLeftMenu({ position: 'topleft' })                     // control menu left
                     .addTo(j.map);
             },
-            containerClick: async (e) => {                                          // click su tabella
-                j.geoLayerGroup.clearLayers()                                       // clear map
-                j={
-                    config: j.config,                                               // parzializzazione j
+            containerClick: async (e) => {                                              // click su tabella
+                j.geoLayerGroup = new L.layerGroup                                      // layer da geo
+                j = {
+                    config: j.config,                                                   // parzializzazione j
                     map: j.map,
                     geoLayerGroup: j.geoLayerGroup
                 }
@@ -68,12 +65,10 @@ export async function setMapIniziale(j) {
                 j.messages = await fetchFileFit(j)                                      // elaborazione file
                 await findHills(j)                                                      // salite e lowLands
                 j.dataJson = await setGeo(j).createGeoJson(j)                           // geoData
-                const tempLayer = L.geoJSON(JSON.parse(j.dataJson));                    // fit map on data json
-                j.map.fitBounds(tempLayer.getBounds(), {
-                    padding: [20, 20]
-                });
-                await useGeoJsonData(j)
-                j.geoLayerGroup.addTo(j.map)                                        // add to map
+                j.map.fitBounds(L.geoJSON(JSON.parse(j.dataJson))                       // fit map
+                    .getBounds(), { padding: [20, 20] });
+                await useGeoJsonData(j)                                                 // create geoLayerGroup
+                j.geoLayerGroup.addTo(j.map)                                            // add to map
             }
         }
     }
@@ -86,9 +81,4 @@ export async function setMapIniziale(j) {
     j.container.addEventListener("click", async e => {                              // agginta event click
         await setMap(j).containerClick(e)
     })
-
-    async function useGeoData(e, j) {                                           // to GeoGroup
-
-
-    }
 }

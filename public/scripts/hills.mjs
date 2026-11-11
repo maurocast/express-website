@@ -4,7 +4,7 @@ export async function findHills(j) {
     const records = j.messages.messages.recordMesgs
     const o = {
         minElevationGain: 15,                           // elevation
-        minDistance: 10,                                 // distance
+        minDistance: 10,                                // distance
         minGradient: 1,                                 // pendenza    
         smoothingWindow: 5                              // smooting
     }
@@ -98,15 +98,20 @@ export async function findHills(j) {
         };
     }
     function calculateLowland(j, records) {
-        let start,end
-        for (let climb of j.hills) {
-            let next = j.hills[j.hills.length + 1]
-            
-            start=j.lowLands.length == 0 ? 0 : climb.end + 1
-            end=next?next.start - 1:records.length - 1
-            
-            j.lowLands.push(function (start, end,records) {
-                return {
+        let start=0
+        for (let climb of j.hills
+            .sort((a,b) => a.start - b.start))
+        {
+            jLpush(start, climb.start,records)  
+            start=climb.end          
+        }
+
+        j.hills[j.hills.length-1].end<records.length-1
+        ?jLpush(j.hills[j.hills.length-1].end, records.length-1,records):''
+        
+        function jLpush(start, end,records){
+            j.lowLands.push(
+                {
                     distance: {
                         distancestart:records[start].distance,
                         distanceend:records[end].distance},
@@ -114,9 +119,10 @@ export async function findHills(j) {
                         .map(r => ({
                             positionLong: r.positionLong,
                             positionLat: r.positionLat
-                        }))
-                }
-            }(start,end,records))
+                        })),
+                    start:records[start].altitude.toFixed(0),
+                    end:records[end].altitude.toFixed(0),
+                })
         }
     }
     calculateLowland(j, records);                                           // no salite

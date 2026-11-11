@@ -30,9 +30,9 @@ app.get('/about', (req, res) => {
 });
 
 // test page
-app.get('/prova', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'prova.html'));
-});
+//app.get('/prova', (req, res) => {
+//    res.sendFile(path.join(__dirname, 'public', 'prova.html'));
+//});
 // test page
 //app.get('/prova', (req, res) => {
   //  res.sendFile(path.join(__dirname, 'public', 'prova.html'));

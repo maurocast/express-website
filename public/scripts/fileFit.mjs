@@ -1,9 +1,4 @@
-/***/
 import { Decoder,Stream } from "https://esm.sh/@garmin/fitsdk";
-/**
- * Creazione fileFit
- * @param {*} j 
- */
 
 export const fetchFileFit = async (j) => {
     const response = await fetch(j.fileFit);                              // file fit

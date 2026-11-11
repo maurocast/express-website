@@ -2,7 +2,12 @@ import { getTableIni } from "./getTable.mjs"
 
 export async function useGeoJsonData(j) {                                      // da GeoJson
             j.descriptionIcons = await getDescriptionIconsGreen(j)              // descrizioni green
-
+let xx=JSON.parse(j.dataJson)
+    .features.map(el=>el.properties)
+    .filter(el=>el.colorLine)
+    .sort((a,b)=>a.startI-b.startI)
+    let yy=[]
+    xx.map(function(el)  { yy.push({a:el.startI,b:el.endI,c:el.colorLine})})
             for (const feature of JSON.parse(j.dataJson).features) {            // loop features
                 if (feature.geometry.type === 'Point') {                        // points
                     j.latLng = [feature.geometry.coordinates[1],                // coordinate    
@@ -29,7 +34,8 @@ export async function useGeoJsonData(j) {                                      /
                         }).addTo(j.geoLayerGroup);
                     }
                 }
-                if (feature.geometry.type === 'LineString') {                   // linee
+                if (feature.geometry.type === 'LineString' &&
+                    feature.geometry.coordinates.length>1) {                   // linee
                     let propFeature = {
                         color: feature.properties.colorLine
                     }
@@ -115,14 +121,15 @@ export async function useGeoJsonData(j) {                                      /
 
                             L.marker([centerPoint[1], centerPoint[0]], {
                                 icon: new L.DivIcon({
-                                    className: 'circle-with-textwhite',
+                                    className: 'circle-with-textblue',
                                     iconSize: [40, 40],
                                     html: '<span>' +
                                         (-feature.properties.distance.distancestart
                                             + feature.properties.distance.distanceend).toFixed(0) +
-                                        '</span>'
+                                            '<br>' + feature.properties.start+
+                                            ' - ' + feature.properties.end+'</span>'
                                 })
-                            }).addTo(j.geoLayerGroup);
+                            })//.addTo(j.geoLayerGroup);
                             break
                     }
                 }

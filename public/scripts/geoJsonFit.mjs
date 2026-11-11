@@ -10,7 +10,31 @@ export function setGeo(j) {
     }
     return {
         async createGeoJson(j) {
-            await this.setFeatureCollection(j)                                          // collection
+            await this.setFeatureCollection(j) 
+
+            const sourceFilename = new URL(j.fileFit, window.location.href)
+                .pathname.split('/').pop();
+            if (!sourceFilename || !/\.fit$/i.test(sourceFilename)) {
+                throw new Error('Could not determine the source FIT filename.');
+            }
+
+            const geoJsonFilename = sourceFilename.replace(/\.fit$/i, '.geojson');
+            const form = new FormData();
+            form.append(
+                'file',
+                new Blob([JSON.stringify(j.featureCollection)], { type: 'application/geo+json' }),
+                geoJsonFilename
+            );
+
+            const response = await fetch('/api/files', {
+                method: 'POST',
+                body: form
+            });
+            if (!response.ok) {
+                throw new Error(`Could not save GeoJSON file: ${response.status}`);
+            }
+
+            // collection
             return JSON.stringify(j.featureCollection)                                  // transformed json
         },
         async setFeatureCollection(j) {
@@ -60,7 +84,8 @@ export function setGeo(j) {
                                 km: (el.distance / 1000).toFixed(1),
                                 altezza: el.elevationGain.toFixed(0),
                                 pend: el.averageGradient.toFixed(1),
-                            }                                                       // descrizione
+                            },
+                                                                           // descrizione
                         }
                     }, // arrivo
                     {
@@ -83,14 +108,16 @@ export function setGeo(j) {
                             coordinates:
                                 el.points.map(r => [
                                     r.positionLong * semicirclesToDegrees,
-                                    r.positionLat * semicirclesToDegrees,
-                                    r.distance])
+                                    r.positionLat * semicirclesToDegrees])
 
                         },
                         properties: {
                             colorLine: getColor(el.averageGradient.toFixed(0)),
                             distance: el.distance,
-                            typeLine: 'H'
+                            typeLine: 'H',
+                            startI:el.start,
+                            endI:el.end
+                        
                         }
                     }
                 )
@@ -107,12 +134,13 @@ export function setGeo(j) {
                         coordinates:
                             el.points.map(r => [
                                 r.positionLong * semicirclesToDegrees,
-                                r.positionLat * semicirclesToDegrees,
-                                r.distance])
+                                r.positionLat * semicirclesToDegrees])
                     },
                     properties: {
-                        colorLine: 'white',
+                        colorLine: 'blue',
                         distance: el.distance,
+                        start:el.start,
+                        end:el.end,
                         typeLine: 'L'
                     }
                 })
