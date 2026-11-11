@@ -32,11 +32,6 @@ app.get('/about', (req, res) => {
 app.get('/prova', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'prova.html'));
 });
-// test page
-//app.get('/prova', (req, res) => {
-  //  res.sendFile(path.join(__dirname, 'public', 'prova.html'));
-//});
-
 // API example
 app.get('/api/status', (req, res) => {
     res.json({
@@ -46,20 +41,9 @@ app.get('/api/status', (req, res) => {
     });
 });
 
-app.get('/api/files', async (req, res, next) => {
-    try {
-        const entries = await fs.readdir(path.join(__dirname, 'public', 'files'), {
-            withFileTypes: true
-        });
-        const files = entries
-            .filter(entry => entry.isFile())
-            .map(entry => entry.name)
-            .sort();
-
-        res.json(files);
-    } catch (error) {
-        next(error);
-    }
+const apiRouterPromise = import('./api.mjs').then(({ default: router }) => router);
+app.use('/api', (req, res, next) => {
+    apiRouterPromise.then(router => router(req, res, next), next);
 });
 
 // 404 handler

@@ -3,7 +3,6 @@ const express = require('express');
 const net = require('node:net');
 const { execFile } = require('node:child_process');
 const path = require('path');
-const fs = require('node:fs/promises');
 const { promisify } = require('node:util');
 
 const execFileAsync = promisify(execFile);
@@ -48,20 +47,9 @@ app.get('/api/status', (req, res) => {
     });
 });
 
-app.get('/api/files', async (req, res, next) => {
-    try {
-        const entries = await fs.readdir(path.join(__dirname, 'public', 'files'), {
-            withFileTypes: true
-        });
-        const files = entries
-            .filter(entry => entry.isFile())
-            .map(entry => entry.name)
-            .sort();
-
-        res.json(files);
-    } catch (error) {
-        next(error);
-    }
+const apiRouterPromise = import('./api.mjs').then(({ default: router }) => router);
+app.use('/api', (req, res, next) => {
+    apiRouterPromise.then(router => router(req, res, next), next);
 });
 
 

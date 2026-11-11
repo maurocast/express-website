@@ -4,202 +4,118 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fit</title>
     <link rel="icon" href="./assets/icons/favicon.ico">
-</head>
+    <link rel="stylesheet" href="/style.css">
+    <!-- Main -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
+
+    </head>
 <script type="module">
+
+    import { fetchFileFit } from "../scripts/fileFit.mjs"
+    import { setGeo } from "../scripts/geoJsonFit.mjs"
+    import { findHills } from "../scripts/hills.mjs"
     import { setMapIniziale } from "../scripts/setMapIniziale.mjs"
-/**    
-//    function getTable(j) {
-        return {
-            create: (j) => {
-                j.IdTable =                                            // create table
-                    Object.assign(document.createElement('table'), {
-                        id: 'IdTable',
-                        className: 'TIdTable'
-                    })
-            },
-            slice(j) {
-                j.dataSlice = j.data.slice(j.inizio, j.fine)                    // selezionati
-            },
-            header(j) {
-                j.header = Object.assign(document.createElement('tr'),{
-                    className: 'Theader'
-                })                                                          // header
-                j.IdTable.append(j.header)
-                for (let el of j.elementRow) {
-                    j.th = Object.assign(document.createElement('th'),{
-                        className: 'Tth'
-                    })
-                    j.th.innerText = el
-                    j.header.append(j.th)
-                }
-            },
-            tr: (j) => {
-                j.tbody = Object.assign(document.createElement('tbody'),{
-                    className: 'Ttbody'
-                })        // tbody
-                j.ctr = 0
-                while (j.ctr < j.elementTable) {                                // rows
-                    j.tr = Object.assign(document.createElement('tr'), {
-                        id: 'tr' + j.ctr,
-                        className: 'Ttr'
-                    })
-                    j.tbody.append(j.tr)
-                    j.ctd = 0
-                    while (j.ctd < j.elementCount) {
-                        j.td = Object.assign(document.createElement('td'), {
-                            id: 'td' + j.ctd,
-                            onclick: function (e, j) { },
-                            innerText: Object.values(j.dataSlice[j.ctr])[j.ctd],
-                            className: 'Ttd'
-                        })
-                        j.ctd++
-                        j.tr.append(j.td)
-                    }
-                    j.ctr++
-                }
-                while (j.ctr < j.rowDisplay) {                                  // fill empty rows      
-                    j.tr = Object.assign(document.createElement('tr'), {
-                        id: 'tr' + j.ctr,
-                        className: 'TtrHidden'
-                    })
-                    j.tbody.append(j.tr)
-                    j.ctd = 0
-                    while (j.ctd < j.elementCount) {
-                        j.td = Object.assign(document.createElement('td'), {
-                            id: 'td' + j.ctd,
-                            innerText: '-',
-                            className: 'TtdHidden'
-                        })
-                        j.ctd++
-                        j.tr.append(j.td)
-                    }
-                    j.ctr++
-                }
-                j.IdTable.append(j.tbody)
-            },
-            span: (j) => {
-                j.span = Object.assign(document.createElement('span'), {
-                    id: 'span',
-                    className: 'Tspan'
+    /**
+     * test importzione file bin
+     */
+    const getTest = async () => {
+
+        const getUrl = [window.location.origin, 'config.json'].join('/')
+
+        let j = {}
+        j.config = await fetch(getUrl)
+            .then(response => response.json())
+            .then(data => data)
+            .catch(error => console.error('Error fetching config:', error));
+
+        await setMapIniziale(j)
+    
+        /** 
+        if (j.file) {
+
+            j.fileFit = 'https://' + window.location.host + '/files/' + j.file
+
+            const file = await fetchFileFit(j)
+            // Example
+            let hills = await findHills(file.messages.recordMesgs, {
+                minElevationGain: 80,
+                minDistance: 800,
+                minGradient: 2
+            })
+            j.hills = hills
+            j.records = file.messages.recordMesgs
+
+            let data = await setGeo(j).createGeoJson(j)
+
+
+            const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.body.appendChild(
+                Object.assign(document.createElement('a'), {
+                    href: url,
+                    download: "save" + ".json"
                 })
-                j.span.append(Object.assign(document.createElement('span'), {
-                    id: 'spanl',
-                    innerText: ' << ',
-                    j: j,
-                    className: 'Tspanl',
-                    onclick: async function (e) {
-                        if (j.inizio != 0) {
+            )
+            //    a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
 
-                            document.getElementById('IdTable').remove()
-                            document.getElementById('span').remove()
-
-                            j.inizio = e.target.j.inizio - e.target.j.rowDisplay
-                            j.inizio == j.dataLength
-                                ? j.inizio = j.dataLength - 1
-                                : ''
-                            j.fine = j.inizio + j.rowDisplay
-                            j.fine > j.dataLength
-                                ? j.fine = j.dataLength
-                                : ''
-                            j.elementTable = j.fine - j.inizio
-
-                            await createTable(j)
-                        }
-                        else {
-                            document.getElementById('spanerror').innerText = 'Non ci sono più righe da visualizzare'
-                        }
-                    }
-                }))
-                j.span.append(Object.assign(document.createElement('span'), {
-                    innerText: (j.inizio + 1) + ' / ' + j.fine,
-                    className: 'TspanLegenda'
-                }))
-                j.span.append(Object.assign(document.createElement('span'), {
-                    id: 'spanr',
-                    innerText: ' >> ',
-                    j: j,
-                    className: 'Tspanr',
-                    onclick: async function (e) {
-                        if (j.fine != j.dataLength) {
-
-                            document.getElementById('IdTable').remove()
-                            document.getElementById('span').remove()
-
-                            j.inizio = e.target.j.inizio + e.target.j.rowDisplay
-                            j.inizio == j.dataLength
-                                ? j.inizio = j.dataLength - 1
-                                : ''
-                            j.fine += e.target.j.rowDisplay
-                            j.fine > j.dataLength
-                                ? j.fine = j.dataLength
-                                : ''
-                            j.elementTable = j.fine - j.inizio
-                            await createTable(j)
-                        }
-                        else {
-                            document.getElementById('spanerror').innerText = 'Non ci sono più righe da visualizzare'
-                        }
-                    }
-                }))
-                j.span.append(Object.assign(document.createElement('br')))
-                j.span.append(Object.assign(document.createElement('span'), {
-                    id: 'spanerror',
-                    innerText: '',
-                    className: 'Tspanerror'
-                }))
+            function onEachFeature(feature, layer) {
+                if (feature.geometry && feature.properties.colorLine) {
+                    layer.options.color = feature.properties.colorLine
+                }
             }
+
+            const tableJson = (t) => {
+                let html = '<table>'
+                for (const key in t) {
+                    html += '<tr><td>' + key + '</td><td>' + t[key] + '</td></tr>'
+                }
+                html += '</table>'
+                return html
+            }
+            L.geoJSON(JSON.parse(data), {
+                pointToLayer: function (feature, latlng) {
+                    if (feature.properties.color == 'green') {
+                        return L.marker(latlng, {
+                            icon: new L.DivIcon({
+                                className: 'circle-with-text' + feature.properties.color,
+                                iconSize: null,
+                                html: '<span >' + '<span>' + tableJson(feature.properties.hill) + '</span>' + '</span>'
+                            })
+                        });
+                    }
+                    if (feature.properties.color == 'red') {
+                        return L.marker(latlng, {
+                            icon: new L.DivIcon({
+                                className: 'circle-with-text' + feature.properties.color,
+                                iconSize: null,
+                                html: '<span >' + 'start' + '</span>'
+                            })
+                        });
+                    }
+                },
+                onEachFeature: onEachFeature
+            }).addTo(j.map);
         }
+    
+    */
     }
-  //  async function getTableIni() {
-        let j = {
-            data: [
-                { nome: 'Andrea', cognome: 'Rossi', eta: 30 },
-                { nome: 'Bruno', cognome: 'Bianchi', eta: 25 },
-                { nome: 'Carlo', cognome: 'Verdi', eta: 30 },
-                { nome: 'Danilo', cognome: 'Gialli', eta: 25 },
-                { nome: 'Emilio', cognome: 'Zoff', eta: 30 },
-                { nome: 'Franco', cognome: 'Anquetil', eta: 25 },
-                { nome: 'Giovanni', cognome: 'Parodi', eta: 30 },
-                { nome: 'Luigi', cognome: 'Biasotti', eta: 25 },
-                { nome: 'Luciano', cognome: 'Renzi', eta: 30 },
-                { nome: 'Michele', cognome: 'Bilotto', eta: 25 },
-                { nome: 'Mario', cognome: 'Coppia', eta: 30 },
-                { nome: 'Mauro', cognome: 'Bartali', eta: 25 },
-                { nome: 'Norberto', cognome: 'Zunino', eta: 30 },
-                { nome: 'Osvaldo', cognome: 'Melchiorre', eta: 25 },
-                { nome: 'Piero', cognome: 'Gerardi', eta: 30 },
-                { nome: 'Quirino', cognome: 'Solenghi', eta: 25 }
-            ].sort((a, b) => a.cognome.localeCompare(b.cognome)),
 
-            rowDisplay: 5,                                                  // display rows
-        }
-        j.dataLength = j.data.length,                                        // data length
-            j.elementRow = Object.keys(j.data[0])                                // Element header
-        j.elementCount = j.elementRow.length                                 // Element count          
-        j.inizio = 0                                                        // start index
-        j.fine = j.inizio + j.rowDisplay                                      // end index
-        j.elementTable = j.fine - j.inizio                                  // Element table        
-
-        await createTable(j)
-
-    }
-//    async function createTable(j) {                                         // create table
-        let fn = getTable(j)
-        await fn.create(j)                                         // table
-        await fn.slice(j)                                          // slice
-        await fn.header(j)                                         // header
-        await fn.tr(j)                                             // rows
-        await fn.span(j)                                           // span
-        document.body.append(j.IdTable, j.span)                    // append to
-    }
-*/
-    let j={}
-    document.addEventListener('readystatechange', (event) => {              // attende caricamento
-        document.readyState === 'complete' ? setMapIniziale() : ''                         // Main
+    document.addEventListener('readystatechange', (event) => {                      // attende caricamento
+        document.readyState === 'complete' ? getTest() : ''                         // Main
     });
 </script>
 
-<body id='body'></body>
+<body id='body'>
+</body>
 
 </html>

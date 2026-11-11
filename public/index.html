@@ -1,6 +1,6 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,25 +21,25 @@
 </head>
 
 <body>
-   <script type="module">
-    import { setMapIniziale } from "../scripts/setMapIniziale.mjs"
+    <script type="module">
+        import { setMapIniziale } from "../scripts/setMapIniziale.mjs"
 
-    const main = async () => {
+        const main = async () => {
 
-        const getUrl = [window.location.origin, 'config.json'].join('/')
+            const getUrl = [window.location.origin, 'config.json'].join('/')
 
-        let j = {}
-        j.config = await fetch(getUrl)
-            .then(response => response.json())
-            .then(data => data)
-            .catch(error => console.error('Error fetching config:', error));
+            let j = {}
+            j.config = await fetch(getUrl)
+                .then(response => response.json())
+                .then(data => data)
+                .catch(error => console.error('Error fetching config:', error));
 
-        await setMapIniziale(j)
-    }
-    document.addEventListener('readystatechange', (event) => {                      // attende caricamento
-        document.readyState === 'complete' ? main() : ''                            // Main
-    });
-    </script> 
-
+            await setMapIniziale(j)
+        }
+        document.addEventListener('readystatechange', (event) => {                      // attende caricamento
+            document.readyState === 'complete' ? main() : ''                            // Main
+        });
+    </script>
 </body>
+
 </html>

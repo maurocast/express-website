@@ -1,4 +1,5 @@
 
+import { objAss } from './routines.mjs'
 import { getTableIni } from "./getTable.mjs"
 import { fetchFileFit } from "./fileFit.mjs"
 import { setGeo } from "./geoJsonFit.mjs"
@@ -13,12 +14,11 @@ export async function setMapIniziale(j) {
         const response = await fetch('/api/files')
         if (response.ok) {                                                      // se ok
             let _ = await response.json()
-            j.files = []                                                        // files da inviare a tabella
-            for (let el of _) {
-                j.files.push({ file: el })
+            j.files = _.map(el => {                                            // array of objects
+                return { file: el }
             }
+            );
         }
-        return await getTableIni(j)                                             // table
     }
 
     const setMap = (j) => {                                                             // j.map
@@ -26,6 +26,7 @@ export async function setMapIniziale(j) {
             createDiv: (j) => {                                                         // create div
                 if (!document.getElementById(j.config.mapIniziale.divMap)) {            // se non esiste
                     j.divMap = objAss('div', { className: 'divMap', id: 'divMap' })
+                    document.body.append(j.divMap)
                     return j.divMap
                 }
             },
@@ -54,27 +55,28 @@ export async function setMapIniziale(j) {
                 return new ControlLeftMenu({ position: 'topleft' })                     // control menu left
                     .addTo(j.map);
             },
+            containerClick: async (e) => {                                          // click su tabella
+                const row = e.target.closest('.tTr')                                // tr clicked
+                if (!row) return
+                j.geoLayerGroup.clearLayers()                                       // clear map
+                await useGeoData(row, {                                             // creazione layers map
+                    config: j.config,                                               // parzializzazione j
+                    map: j.map,
+                    geoLayerGroup: j.geoLayerGroup
+                })
+                j.geoLayerGroup.addTo(j.map)                                        // add to map
+            }
         }
     }
-    document.body.append(
-        setMap(j).createDiv(j)                                                          // divMap
-    )
-    j.tableFilesInnerHtml = await getFiles(j)                                           // files per map
-
+    setMap(j).createDiv(j)                                                          // create div
     setMap(j).createMap(j)                                                          // create map                                          
     setMap(j).createTileLayer(j)                                                    // tile
-    await setMap(j).setControlLeft(j)                                               // left
+    await getFiles(j)                                                               // files per map
+    await getTableIni(j)                                                            // table
+    await setMap(j).setControlLeft(j)                                               // left control
     j.container.addEventListener("click", async e => {                              // agginta event click
-        const row = e.target.closest('.tTr')
-        if (!row) return
-        j.geoLayerGroup.clearLayers()
-        await useGeoData(row, {                                                     // creazione layer
-            config: j.config,
-            map: j.map,
-            geoLayerGroup: j.geoLayerGroup
+        await setMap(j).containerClick(j)
         })
-        j.geoLayerGroup.addTo(j.map)
-    })
 
     async function useGeoData(e, j) {                                           // to GeoGroup
 
@@ -99,14 +101,10 @@ export async function setMapIniziale(j) {
             });
         }
 
-        
 
-        
 
-        
+
+
+
     }
-}
-
-function objAss(htmlElement, assignment) {
-    return Object.assign(document.createElement(htmlElement), assignment)
 }
