@@ -98,31 +98,36 @@ export async function findHills(j) {
         };
     }
     function calculateLowland(j, records) {
-        let start=0
+        let start = 0
         for (let climb of j.hills
-            .sort((a,b) => a.start - b.start))
-        {
-            jLpush(start, climb.start,records)  
-            start=climb.end          
+            .sort((a, b) => a.start - b.start)) {
+            jLpush(start, climb.start, records)
+            start = climb.end
         }
 
-        j.hills[j.hills.length-1].end<records.length-1
-        ?jLpush(j.hills[j.hills.length-1].end, records.length-1,records):''
-        
-        function jLpush(start, end,records){
+        j.hills[j.hills.length - 1].end < records.length - 1
+            ? jLpush(j.hills[j.hills.length - 1].end, records.length - 1, records) : ''
+
+        function jLpush(start, end, records) {
+            end-start>1?
             j.lowLands.push(
                 {
                     distance: {
-                        distancestart:records[start].distance,
-                        distanceend:records[end].distance},
+                        distancestart: records[start].distance,
+                        distanceend: records[end].distance
+                    },
                     points: records.slice(start, end).filter(el => el.positionLat)
                         .map(r => ({
                             positionLong: r.positionLong,
                             positionLat: r.positionLat
                         })),
-                    start:records[start].altitude.toFixed(0),
-                    end:records[end].altitude.toFixed(0),
-                })
+                    altitude: {
+                        start: records[start].altitude.toFixed(0),
+                        end: records[end].altitude.toFixed(0)
+                    },
+                    start: start, end: end
+            })
+            :''
         }
     }
     calculateLowland(j, records);                                           // no salite

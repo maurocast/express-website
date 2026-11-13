@@ -87,6 +87,7 @@ footer {
     font-size: 9px;
     padding: 3px;
     margin: 3px; 
+    opacity: 0.5;
 }
 .circle-with-textgreen {
     background-color: green;
@@ -97,7 +98,8 @@ footer {
     font-weight: bold;
     font-size: 9px;
     padding: 3px;
-    margin: 3px; 
+    margin: 3px;
+    opacity:0.5 
 }
 .circle-with-textblue {
     background-color: blue;
@@ -109,6 +111,7 @@ footer {
     font-size: 9px;
     padding: 1px;
     margin: 1px; 
+    
 }
 .left-menu {
     background: blue;

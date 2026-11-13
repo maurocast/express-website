@@ -162,3 +162,8 @@ export function fncFetch(url, requestBody, headers, POSTGET) {
 export function objAss(htmlElement,assignment){
     return Object.assign(document.createElement(htmlElement),assignment)
 }
+export function getColor(j)  {                                                    // colosi salita
+        j.pendenza < 0 ? j.pendenza = 0 : ''
+        j.pendenza > 15 ? j.pendenza = 15 : ''
+        return j.config.colorsArr[j.pendenza.toString()]
+    }

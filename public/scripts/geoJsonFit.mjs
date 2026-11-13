@@ -1,16 +1,12 @@
+import { getColor } from "./routines.mjs";
 /**
  * generazione formato GeoJson from Fit
  * */
 export function setGeo(j) {
-    const semicirclesToDegrees = 180 / Math.pow(2, 31);                                 // trasform number to lat/lng
-    const getColor = (pendenza) => {                                                    // colosi salita
-        pendenza < 0 ? pendenza = 0 : pendenza = pendenza
-        pendenza > 15 ? pendenza = 15 : pendenza = pendenza
-        return j.config.colorsArr[pendenza.toString()]
-    }
+    
     return {
         async createGeoJson(j) {
-            await this.setFeatureCollection(j) 
+            await this.setFeatureCollection(j)                                          // file fit
 
             const sourceFilename = new URL(j.fileFit, window.location.href)
                 .pathname.split('/').pop();
@@ -44,23 +40,20 @@ export function setGeo(j) {
                     (await this.setInizio(j))                                           // point Iizio
                         .concat(await this.setSalite(j))                                // salite
                         .concat(await this.setlowLands(j))                              // lowLands
-                    }
+                    ,
+                properties:{
+                    fit:j.messages.messages                                             // file fit
+                }
+            }                                                   
         },
         async setInizio(j) {
             j.features = []                                                          // features
             j.features.push(
                 {
                     type: "Feature",                                                 // home point
-                    geometry: {
-                        type: "Point",
-                        coordinates: [
-                            j.messages.messages.recordMesgs[0].positionLong * semicirclesToDegrees,
-                            j.messages.messages.recordMesgs[0].positionLat * semicirclesToDegrees
-                        ]
-                    },
-                    properties: {
-                        color: 'red'                                                // color
-                    }
+                    geometry: {type: "Point"},
+                    properties: {color: 'red',slice:[0,1]},
+                    
                 },
             )
             return j.features                                                       // features
@@ -68,16 +61,11 @@ export function setGeo(j) {
         async setSalite(j) {
             j.features = []
             for (let el of j.hills) {                                              // milestone
+                j.pendenza=el.averageGradient.toFixed(0)
                 j.features.push(
                     {
                         type: "Feature",
-                        geometry: {
-                            type: "Point",                                          // point
-                            coordinates: [
-                                el.endLon * semicirclesToDegrees,
-                                el.endLat * semicirclesToDegrees,
-                            ]
-                        },
+                        geometry: {type: "Point"},
                         properties: {
                             color: 'green',
                             hill: {
@@ -85,39 +73,25 @@ export function setGeo(j) {
                                 altezza: el.elevationGain.toFixed(0),
                                 pend: el.averageGradient.toFixed(1),
                             },
-                                                                           // descrizione
+                            slice:[el.end,el.end+1]
                         }
                     }, // arrivo
                     {
                         type: "Feature",
-                        geometry: {
-                            type: "Point",
-                            coordinates: [
-                                el.startLon * semicirclesToDegrees,
-                                el.startLat * semicirclesToDegrees,
-                            ]
-                        },
+                        geometry: {type: "Point"},
                         properties: {
-                            color: 'red'                                        // descrizione
+                            color: 'red',                                        // descrizione
+                            slice:[el.start,el.start+1]                        
                         }
                     }, // partenza 
                     {                                                              // linestring 
                         type: "Feature",
-                        geometry: {
-                            type: "LineString",
-                            coordinates:
-                                el.points.map(r => [
-                                    r.positionLong * semicirclesToDegrees,
-                                    r.positionLat * semicirclesToDegrees])
-
-                        },
+                        geometry: {type: "LineString"},
                         properties: {
-                            colorLine: getColor(el.averageGradient.toFixed(0)),
+                            colorLine: getColor(j),
                             distance: el.distance,
                             typeLine: 'H',
-                            startI:el.start,
-                            endI:el.end
-                        
+                            slice:[el.start,el.end]                        
                         }
                     }
                 )
@@ -129,36 +103,16 @@ export function setGeo(j) {
             for (let el of j.lowLands) {
                 j.features.push({
                     type: "Feature",
-                    geometry: {
-                        type: "LineString",
-                        coordinates:
-                            el.points.map(r => [
-                                r.positionLong * semicirclesToDegrees,
-                                r.positionLat * semicirclesToDegrees])
-                    },
+                    geometry: {type: "LineString"},
                     properties: {
                         colorLine: 'blue',
                         distance: el.distance,
-                        start:el.start,
-                        end:el.end,
-                        typeLine: 'L'
+                        typeLine: 'L',
+                        slice:[el.start,el.end]
                     }
                 })
             }
             return j.features
-        },
-        async coords(j) {
-            let _ = []
-            j.messages.messages.recordMesgs
-                .filter(record => record.positionLat !== undefined && record.positionLong !== undefined)
-                .map(record => {
-                    _.push([
-                        record.positionLong * semicirclesToDegrees,
-                        record.positionLat * semicirclesToDegrees,
-                        record.distance
-                    ])
-                });
-            return _
         }
-    }
+        }
 }
