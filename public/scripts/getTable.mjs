@@ -1,7 +1,7 @@
 /***/
 export async function getTableIni(j) {                          // Inizializzazione     
     j.data = j.files
-    j.rowDisplay = 5                                                    // display rows
+    j.rowDisplay = j.tableFilesRecordsPage??5                           // display rows
     j.dataLength = j.data.length                                        // data length
     j.elementRow = Object.keys(j.data[0])                                // Element header
     j.elementCount = j.elementRow.length                                 // Element count          
@@ -12,9 +12,10 @@ export async function getTableIni(j) {                          // Inizializzazi
     j.fn = await getTable(j)
     await j.fn.create(j)                                         // table
     await j.fn.slice(j)                                          // slice
+
     await j.fn.header(j)                                         // header
     await j.fn.tr(j)                                             // rows
-    if (j.rowDisplay < j.dataLength) {                         // data length
+    if (j.rowDisplay < j.dataLength) {                           // data length
         await j.fn.span(j)
     } else if (j.span) {
         j.span.innerHTML = ''
@@ -24,27 +25,30 @@ export async function getTableIni(j) {                          // Inizializzazi
 async function getTable(j) {                                                // create table
     return {
         create: async (j) => {
-            j.idTable =objAss('table', {                                    // idTable
-                id: 'idTable',className: 'TidTable'})
+            j.idTable = objAss('table', {                                    // idTable
+                id: 'idTable', className: 'TidTable'
+            })
         },
         slice: async (j) => {
             j.dataSlice = j.data.slice(j.inizio, j.fine)                    // selezionati
         },
         header: async (j) => {
-            j.header = objAss('tr', {className: 'Theader'})                 // header                                                              
+            j.header = objAss('tr', { className: 'Theader' })                 // header                                                              
             j.idTable.append(j.header)
-            for (let el of j.elementRow) {
-                j.th = objAss('th', {className: 'Tth',innerText : el})
-                j.header.append(j.th)
+            if (!j.tableNoHeader||j.tableNoHeader != 'S') {
+                for (let el of j.elementRow) {
+                    j.th = objAss('th', { className: 'Tth', innerText: el })
+                    j.header.append(j.th)
+                }
             }
         },
         tr: async (j) => {
-            j.tbody = objAss('tbody', {className: 'Ttbody'})               // tbody
+            j.tbody = objAss('tbody', { className: 'Ttbody' })               // tbody
             j.ctr = 0
             while (j.ctr < j.elementTable) {                                // rows
                 j.tr = objAss('tr', {
-                    id: 'tr' ,
-                    className:'tTr', 
+                    id: 'tr',
+                    className: 'tTr',
                     'onclick': async (e) => {                                   // click
                     }
                 })
@@ -66,7 +70,7 @@ async function getTable(j) {                                                // c
                 j.ctr++
             }
             while (j.ctr < j.rowDisplay) {                                  // fill empty rows      
-                j.tr = objAss('tr', {id: 'tr' + j.ctr,className: 'TtrHidden'})
+                j.tr = objAss('tr', { id: 'tr' + j.ctr, className: 'TtrHidden' })
                 j.tbody.append(j.tr)
                 j.ctd = 0
                 while (j.ctd < j.elementCount) {
@@ -80,7 +84,7 @@ async function getTable(j) {                                                // c
                 }
                 j.ctr++
             }
-            j.trSpan = objAss('tr', {id: 'tr' + 'Span',className: 'Ttr'})
+            j.trSpan = objAss('tr', { id: 'tr' + 'Span', className: 'Ttr' })
             j.tdSpan = objAss('td', {
                 id: 'td' + 'Span',
                 innerText: '',
@@ -94,10 +98,10 @@ async function getTable(j) {                                                // c
         },
         span: async (j) => {
             j.tdSpan.innerHTML = ''
-            j.span = objAss('span', {id: 'span',className: 'Tspan'})
+            j.span = objAss('span', { id: 'span', className: 'Tspan' })
             j.span.append(
                 objAss('span', {
-                    id: 'spanl',innerText: ' << ',j: j,
+                    id: 'spanl', innerText: ' << ', j: j,
                     className: 'Tspanl',
                     onclick: async function (e) {
                         if (j.inizio != 0) {
@@ -124,7 +128,7 @@ async function getTable(j) {                                                // c
                     className: 'TspanLegenda'
                 }),
                 objAss('span', {
-                    id: 'spanr',innerText: ' >> ',j:j,
+                    id: 'spanr', innerText: ' >> ', j: j,
                     className: 'Tspanr',
                     onclick: async function (e) {
                         if (j.fine != j.dataLength) {
@@ -148,8 +152,9 @@ async function getTable(j) {                                                // c
                 }),
                 objAss('br'),
                 objAss('span', {
-                    id: 'spanerror',innerText: '',
-                    className: 'Tspanerror'})
+                    id: 'spanerror', innerText: '',
+                    className: 'Tspanerror'
+                })
             )
             j.tdSpan.append(j.span)
         },
@@ -166,5 +171,5 @@ async function getTable(j) {                                                // c
     }
 }
 function objAss(htmlElement, assignment) {
-        return Object.assign(document.createElement(htmlElement), assignment)
-    }
+    return Object.assign(document.createElement(htmlElement), assignment)
+}

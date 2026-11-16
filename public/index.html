@@ -23,6 +23,7 @@
 <body>
     <script type="module">
         import { setMap } from "../scripts/setMap.mjs"
+    
 
         const main = async () => {
 
@@ -33,7 +34,7 @@
                 .then(response => response.json())
                 .then(data => data)
                 .catch(error => console.error('Error fetching config:', error));
-
+            j.config.semicirclesToDegrees = 180 / Math.pow(2, 31);
             await setMap(j)
         }
         document.addEventListener('readystatechange', (event) => {                      // attende caricamento

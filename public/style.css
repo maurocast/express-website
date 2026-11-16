@@ -97,9 +97,8 @@ footer {
     text-align: center;
     font-weight: bold;
     font-size: 9px;
-    padding: 3px;
-    margin: 3px;
-    opacity:0.5 
+    padding: 1px;
+    margin: 1px;
 }
 .circle-with-textblue {
     background-color: blue;

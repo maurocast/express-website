@@ -167,3 +167,48 @@ export function getColor(j)  {                                                  
         j.pendenza > 15 ? j.pendenza = 15 : ''
         return j.config.colorsArr[j.pendenza.toString()]
     }
+export function setNomin(j) {
+
+    const params = new URLSearchParams({
+        lat: j.latlng.lat,
+        lon: j.latlng.lng,
+        addressdetails: '1',
+        format: 'jsonv2'
+    });
+    return fetch(`https://nominatim.openstreetmap.org/reverse?${params}`)
+        .then(async response => {
+            if (!response.ok) {
+                throw new Error(`Nominatim request failed: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(result => {
+            return result.address //.display_name.split(',').slice(0, 2)
+        })
+        .catch(error => {
+            console.error(error);
+        });
+}
+export async function saveFile(j){
+            const sourceFilename = new URL(j.fileFit, window.location.href)
+                .pathname.split('/').pop();
+            if (!sourceFilename || !/\.fit$/i.test(sourceFilename)) {
+                throw new Error('Could not determine the source FIT filename.');
+            }
+
+            const geoJsonFilename = sourceFilename.replace(/\.fit$/i, '.geojson');
+            const form = new FormData();
+            form.append(
+                'file',
+                new Blob([JSON.stringify(j.featureCollection)], { type: 'application/geo+json' }),
+                geoJsonFilename
+            );
+
+            const response = await fetch('/api/files', {
+                method: 'POST',
+                body: form
+            });
+            if (!response.ok) {
+                throw new Error(`Could not save GeoJSON file: ${response.status}`);
+            }
+}

@@ -105,11 +105,11 @@ export async function findHills(j) {
             start = climb.end
         }
 
-        j.hills[j.hills.length - 1].end < records.length - 1
+        j.hills[j.hills.length - 1].end < records.length - 1 
             ? jLpush(j.hills[j.hills.length - 1].end, records.length - 1, records) : ''
 
         function jLpush(start, end, records) {
-            end-start>1?
+            end-start>1 && records[start].altitude<records[end].altitude?
             j.lowLands.push(
                 {
                     distance: {

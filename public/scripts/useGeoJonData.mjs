@@ -1,194 +1,285 @@
-import { getTableIni } from "./getTable.mjs"                                   // descrizione arrivo
 
-export async function useGeoJsonData(j) {                                      // da GeoJson
+import { getTableIni } from "./getTable.mjs";
+import { getMarker } from "./marker.mjs";
 
-    j.records = JSON.parse(j.dataJson).properties.fit.recordMesgs              // record completi fit
-    j.descriptionIcons = await getDescriptionIconsGreen(j)                     // descrizioni green
+/**
+ * Elabora i dati GeoJSON e costruisce il layer Leaflet.
+ */
+export async function useGeoJsonData(j) {
 
-    for (let feature of JSON.parse(j.dataJson).features) {                     // loop features
-        if (feature.geometry.type === 'Point') {                               // points
-            let point = await coords(j, feature)                                // feauture coords GeoJson 
-            if (feature.properties.color == 'green') {                          // arrivo
-                j.tableGreen = j.descriptionIcons.splice(0, 1)                  // splice elemento descrizione 
-                j.tableGreen[0].childNodes[1].childNodes[5]                     // span con Nomin
-                    .childNodes[0].innerHTML = await setNomin(feature)
-            }
-            L.marker(point.geometry.coordinates.reverse(), {                    // marker punto arrivo
-                icon: new L.DivIcon({
-                    iconSize: null,
-                    className: 'circle-with-text' + feature.properties.color,   // style 
-                    html: feature.properties.color == 'green'                   // html per green 
-                        ? j.tableGreen[0].outerHTML
-                        : '<span>start ' + await setNomin(feature) + '</span>'   // html red
-                })
-            }).addTo(j.geoLayerGroup)                                           // add to group
+    j.descriptionIcons = await getDescriptionIconsGreen(j);                         // descrizioni per green
+
+    for (const feature of j.dataJson.features) {                                    // loop feature
+
+        j.feature = feature;                                                        // j.feature
+
+        await coords(j);                                                            // recuper coordinate
+
+        switch (feature.geometry.type) {
+
+            case "Point":                                                           // feature Point
+                await processPoint(j);
+                break;
+
+            case "LineString":                                                      // feature Line string
+                processLine(j);
+                break;
+
+            default:
+                console.warn(                                                       // errore
+                    "Geometria GeoJSON non supportata:",
+                    feature.geometry.type
+                );
         }
-        if (feature.geometry.type === 'LineString') {                           // linee
-            let line = await coords(j, feature)                                 // feauture coords GeoJson
-            feature = line                                                      // feauture clone
-            let propFeature = {                                                 // style feature
-                color: feature.properties.colorLine
-            }
-            const centerPoint = feature.geometry.coordinates[Math.round(feature.geometry.coordinates.length / 2)];
-            const patternsL = [
-                {
-                    offset: 10,
-                    repeat: 25,
+    }
 
-                    symbol: L.Symbol.dash({
-                        pixelSize: 10,
-                        pathOptions: {
-                            color: '#f00',
-                            weight: 2
-                        }
-                    })
-                }]
-            const patternsH = [{
-                offset: '10%',
+    return j;
+}
+
+/**
+ * Gestione dei punti.
+ */
+async function processPoint(j) {
+
+    if (j.feature.properties.color === "green") {
+        j.tableGreen = j.descriptionIcons.shift();                                  // first element                                      
+    }
+
+    await getMarker(j);                                                             // visualizza marker
+}
+
+/**
+ * Gestione delle linee.
+ */
+function processLine(j) {
+
+    const feature = j.feature;
+
+    switch (feature.properties.typeLine) {
+
+        case "H":
+            addHillLine(j);                                                         // salite
+            break;
+
+        case "L":
+            addLowlandLine(j);                                                      // discese
+            break;
+
+        default:
+            addDefaultLine(j);                                                      // pianure
+    }
+}
+
+/**
+ * Linea di salita.
+ */
+function addHillLine(j) {
+
+    const feature = j.feature;
+
+    addGeoJsonLine(j, feature, {
+        color: "black",
+        weight: 10
+    });
+
+    const layer = addGeoJsonLine(j, feature, {
+        color: feature.properties.colorLine,
+        weight: 6
+    });
+
+    addArrowDecorator(j, layer);
+}
+
+/**
+ * Linea di pianura.
+ */
+function addLowlandLine(j) {
+
+    const feature = j.feature;
+
+    const layer = addGeoJsonLine(j, feature, {
+        color: feature.properties.colorLine,
+        weight: 2
+    });
+
+    addDashDecorator(j, layer);
+    addCenterMarker(j);
+}
+
+/**
+ * Linea predefinita.
+ */
+function addDefaultLine(j) {
+
+    addGeoJsonLine(j, j.feature, {
+        color: "white",
+        weight: 2
+    });
+}
+
+/**
+ * Crea una linea GeoJSON e la aggiunge al gruppo.
+ */
+function addGeoJsonLine(j, feature, style) {
+
+    return L.geoJson(feature, {
+        style
+    }).addTo(j.geoLayerGroup);
+}
+
+/**
+ * Decoratore frecce per le salite.
+ */
+function addArrowDecorator(j, geojsonLayer) {
+
+    geojsonLayer.eachLayer(layer => {
+
+        if (!(layer instanceof L.Polyline)) return;
+
+        L.polylineDecorator(layer, {
+            patterns: [{
+                offset: "10%",
                 repeat: 100,
                 symbol: L.Symbol.arrowHead({
                     pixelSize: 6,
                     polygon: true,
                     pathOptions: {
-                        color: 'blue',
+                        color: "blue",
                         opacity: 0.6,
                         fillOpacity: 0.6,
-                        fillColor: 'blue',
-                        //    className: 'decorator-pattern'
+                        fillColor: "blue"
                     }
                 })
             }]
-            let propFeatureBlack = {                                    // controfno per H
-                color: 'black',
-                weight: 10,
-                fillopacity: 1
-            }
-            if (feature.properties.typeLine == 'H') {                   // dimensioni H,L
-                propFeature.weight = 6,
-                    propFeature.fillopacity = 1
-            }
-            if (feature.properties.typeLine == 'L') {                   // dimensioni H,L
-                propFeature.weight = 2,
-                    propFeature.fillopacity = 0.5
-            }
-            switch (feature.properties.typeLine) {                      // decorators
-                case 'H':
-                    L.geoJson(feature, {                                // salite contorno
-                        style: function (feature) {
-                            return propFeatureBlack
-                        }
-                    }).addTo(j.map)
-                    const geojsonLayer = L.geoJson(feature, {                                // salite 
-                        style: function (feature) {
-                            return propFeature
-                        }
-                    }).addTo(j.geoLayerGroup)
-                    geojsonLayer.eachLayer(function (layer) {
-                        if (layer instanceof L.Polyline) {
-                            L.polylineDecorator(layer, {
-                                patterns: patternsH
-                            }).addTo(j.geoLayerGroup)
-                        }
-                    });
-                    break;
-                case 'L':
-                    L.geoJson(feature, {                                          // pianure
-                        style: function (feature) {
-                            return propFeature
-                        }
-                    }).addTo(j.geoLayerGroup)
-                    const geojsonLayerL = L.geoJson(feature, {                                          // pianure
-                        style: function (feature) {
-                            return propFeature
-                        }
-                    }).addTo(j.geoLayerGroup)
-                    geojsonLayerL.eachLayer(function (layer) {
-                        if (layer instanceof L.Polyline) {
-                            L.polylineDecorator(layer, {
-                                patterns: patternsL
-                            }).addTo(j.geoLayerGroup)
-                        }
-                    });
-                    L.marker([centerPoint[1], centerPoint[0]], {
-                        icon: new L.DivIcon({
-                            className: 'circle-with-textblue',
-                            iconSize: [40, 40],
-                            html: '<span>' +
-                                (-feature.properties.distance.distancestart
-                                    + feature.properties.distance.distanceend).toFixed(0) +
-                                '<br>' + feature.properties.start +
-                                ' - ' + feature.properties.end + '</span>'
-                        })
-                    }).addTo(j.geoLayerGroup);
-                    break
-            }
-        }
-    }
+        }).addTo(j.geoLayerGroup);
+    });
 }
 
+/**
+ * Decoratore tratteggiato per le pianure.
+ */
+function addDashDecorator(j, geojsonLayer) {
+
+    geojsonLayer.eachLayer(layer => {
+
+        if (!(layer instanceof L.Polyline)) return;
+
+        L.polylineDecorator(layer, {
+            patterns: [{
+                offset: 10,
+                repeat: 25,
+                symbol: L.Symbol.dash({
+                    pixelSize: 10,
+                    pathOptions: {
+                        color: "#f00",
+                        weight: 2
+                    }
+                })
+            }]
+        }).addTo(j.geoLayerGroup);
+    });
+}
+
+/**
+ * Marker informativo al centro della linea.
+ */
+function addCenterMarker(j) {
+
+    const feature = j.feature;
+    const coordinates = feature.geometry.coordinates;
+
+    if (!coordinates.length) return;
+
+    const centerPoint = coordinates[
+        Math.floor((coordinates.length - 1) / 2)
+    ];
+
+    const distance = feature.properties.distance;
+
+    const distanceValue = (
+        -distance.distancestart + distance.distanceend
+    ).toFixed(0);
+
+    const html = `
+        <span>
+            ${distanceValue}
+            <br>
+            ${feature.properties.start} - ${feature.properties.end}
+        </span>
+    `;
+
+    L.marker(
+        [centerPoint[1], centerPoint[0]],
+        {
+            icon: new L.DivIcon({
+                className: "circle-with-textblue",
+                iconSize: [40, 40],
+                html
+            })
+        }
+    ).addTo(j.geoLayerGroup);
+}
+
+/**
+ * Recupera le descrizioni associate ai punti verdi.
+ */
 async function getDescriptionIconsGreen(j) {
 
-    let result = []
-    const tmpLayer = JSON.parse(j.dataJson)                     // tutte le descrizioni Green
-    for (const feature of tmpLayer.features) {
-        if (feature.properties.color == 'green') {
-            j.files = Array(feature.properties.hill)            // property.hill
-            let _ = await getTableIni(j)
-            result.push(_)                                      // tables
-        }
+    const result = [];
+
+    for (const feature of j.dataJson.features) {
+
+        if (feature.properties.color !== "green") continue;
+
+        j.files = [feature.properties.hill];
+
+        const table = await getTableIni(j);
+
+        j.rowDisplay = j.tableFilesRecordsPage ?? 5;
+
+        result.push(table);
     }
-    return result
+
+    return result;
 }
 
-async function setNomin(feature) {
-    return ''
-    setTimeout(() => {
-        console.log("Eseguito dopo 1 secondo");
-    }, 2000);
+/**
+ * Ricostruisce le coordinate GeoJSON dai records.
+ */
+async function coords(j) {
 
-    const params = new URLSearchParams({
-        lat: feature.geometry.coordinates[1],
-        lon: feature.geometry.coordinates[0],
-        addressdetails: '1',
-        format: 'jsonv2'
-    });
-    return fetch(`https://nominatim.openstreetmap.org/reverse?${params}`)
-        .then(async response => {
-            if (!response.ok) {
-                throw new Error(`Nominatim request failed: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(result => {
-            return result.display_name.split(',').slice(0, 2)
-        })
-        .catch(error => {
-            console.error(error);
-        });
-}
+    const geometry = j.feature.geometry;
+    const [start, end] = j.feature.properties.slice;
 
-async function coords(j, feature) {
-    const semicirclesToDegrees = 180 / Math.pow(2, 31);
-    !feature.geometry.coordinates
-        ? feature.geometry.coordinates = [] : ''
+    const records = j.records.slice(start, end);
 
+    const coordinates = [];
 
-    for (let record of j.records
-        .slice(feature.properties.slice[0], feature.properties.slice[1])) {
-        if (feature.geometry.type == 'Point') {
-            feature.geometry.coordinates.push(
-                record.positionLong * semicirclesToDegrees,
-                record.positionLat * semicirclesToDegrees
-            )
+    for (const record of records) {
+
+        const lon =
+            record.positionLong * j.config.semicirclesToDegrees;
+
+        const lat =
+            record.positionLat * j.config.semicirclesToDegrees;
+
+        if (!Number.isFinite(lon) || !Number.isFinite(lat)) {
+            continue;
         }
-        if (feature.geometry.type == 'LineString' &&
-            !isNaN(record.positionLong * semicirclesToDegrees)
-        ) {
-            feature.geometry.coordinates.push(
-                [record.positionLong * semicirclesToDegrees,
-                record.positionLat * semicirclesToDegrees]
-            )
+
+        coordinates.push([lon, lat]);
+    }
+
+    if (geometry.type === "Point") {
+
+        if (coordinates.length) {
+            geometry.coordinates = coordinates[0];
         }
-    };
-    return feature;
+
+    } else if (geometry.type === "LineString") {
+
+        geometry.coordinates = coordinates;
+    }
+
+    return j.feature;
 }

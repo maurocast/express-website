@@ -1,84 +1,165 @@
 /**
- * Impostazione map
+ * da ChatGPT
  */
 import { objAss } from './routines.mjs'
-import { getTableIni } from "./getTable.mjs"
-import { fetchFileFit } from "./fileFit.mjs"
-import { setGeo } from "./geoJsonFit.mjs"
-import { findHills } from "./hills.mjs"
-import { useGeoJsonData } from "./useGeoJonData.mjs"
+import { getTableIni } from './getTable.mjs'
+import { fetchFileFit } from './fileFit.mjs'
+import { setGeo } from './geoJsonFit.mjs'
+import { findHills } from './hills.mjs'
+import { useGeoJsonData } from './useGeoJonData.mjs'
 
 export async function setMap(j) {
-    j.geoLayerGroup = new L.layerGroup                                      // layer da geo
-            
-    const setMap = (j) => {                                                      
-        return {
-            createDiv: (j) => {                                                   // create div
-                if (!document.getElementById(j.config.mapIniziale.divMap)) {     // se non esiste
-                    j.divMap = objAss('div', { className: 'divMap', id: 'divMap' })
-                    document.body.append(j.divMap)
+
+    j.geoLayerGroup = new L.layerGroup
+
+    const methods = {
+
+        createDiv() {
+            if (!document.getElementById(j.config.mapIniziale.divMap)) {
+                j.divMap = objAss('div', {
+                    className: j.config.mapIniziale.divMap,
+                    id: j.config.mapIniziale.divMap
+                })
+                document.body.append(j.divMap)
+            } else {
+                j.divMap = document.getElementById(
+                    j.config.mapIniziale.divMap
+                )
+            }
+        },
+
+        createMap() {
+            j.map = L.map(j.divMap, j.config.mapIniziale)
+        },
+
+        createTileLayer() {
+            L.tileLayer(
+                j.config.mapIniziale.tileLayer,
+                {
+                    attribution: j.config.mapIniziale.attribution
                 }
-            },
-            createMap: (j) => {                                                   // map
-                j.map = L.map(j.divMap, j.config.mapIniziale);
-            },
-            createTileLayer: (j) => {                                             // Tile
-                L.tileLayer(j.config.mapIniziale.tileLayer,
-                    { attribution: j.config.mapIniziale.attribution })
-                    .addTo(j.map)
-            },
-            getFiles: async (j) => {                                              // lettura files da files
-                const response = await fetch('/api/files')
-                    let _ = await response.json()
-                    j.files = _.map(el => {                                       // array of objects
-                        return { file: el }
+            ).addTo(j.map)
+        },
+
+        async getFiles() {
+            const response = await fetch('/api/files')
+            const files = await response.json()
+
+            j.files = files.map(file => ({ 'file.fit':file }))
+        },
+
+        async setControlLeft() {
+            j.tableFilesRecordsPage=10
+            j.tableFiles = await getTableIni(j)
+
+            const ControlLeftMenu = L.Control.extend({
+                onAdd: () => {
+                    j.container = objAss('div', {
+                        className: 'left-menu',
+                        id: 'container'
                     })
-            },
-            setControlLeft: async (j) => {                                        // left control  
-                j.tableFiles = await getTableIni(j)                               
-                const ControlLeftMenu = L.Control.extend({
-                    onAdd: () => {
-                        j.container = objAss('div', {                             // container
-                            className: 'left-menu',
-                            id: 'container',
-                        })
-                        j.container.append(
-                            j.tableFiles                                          // tabella files 
-                        )
-                        return j.container;
-                    }
-                });
-                return new ControlLeftMenu({ position: 'topleft' })               // control menu left
-                    .addTo(j.map);
-            },
-            containerClick: async (e) => {                                        // click su tabella
-                j.geoLayerGroup.clearLayers();
-                j = {
-                    config: j.config,                                                   // parzializzazione j
-                    map: j.map,
-                    geoLayerGroup: j.geoLayerGroup
+
+                    j.container.append(j.tableFiles)
+
+                    return j.container
                 }
+            })
+
+            new ControlLeftMenu({ position: 'topleft' }).addTo(j.map)
+        },
+
+        async containerClick(e) {
+
+            j.geoLayerGroup.clearLayers()                                       // pulizia layerGroup
+
+            const cell = e.target.closest('td')                                 // controllo se click su nome file
+            if (!cell || 
+                (cell && cell.id=='tdSpan') ||                                  // no span <</>> no hidden
+                (cell && cell.className=='TtdHidden')) return
+            const fileName = cell.textContent.trim()
+
+            const dataJsonString = await methods.existFileJson(                 // se esiste geojson string
+                fileName
+            )
+
+            if (!dataJsonString) {
                 j.fileFit = window.location.origin +
-                    '/files/' + e.target.textContent.trim()                             // caricamento file
-                j.messages = await fetchFileFit(j)                                      // elaborazione file
-                await findHills(j)                                                      // salite e lowLands
-                j.dataJson = await setGeo(j).createGeoJson(j)                           // geoData
-            //    j.map.fitBounds(L.geoJSON(JSON.parse(j.dataJson))                       // fit map
-              //      .getBounds(), { padding: [20, 20] });
-                await useGeoJsonData(j)                                                 // create geoLayerGroup
-                j.geoLayerGroup.addTo(j.map)                                            // add to map
+                    '/files/' + fileName
+
+                j.messages = await fetchFileFit(j)
+
+                await findHills(j)
+
+                j.dataJsonString = await setGeo(j).createGeoJson(j)
+            } else {
+                j.dataJsonString = dataJsonString
+            }
+
+            j.dataJson = JSON.parse(j.dataJsonString)
+
+            j.records = j.dataJson.properties.fit.recordMesgs
+
+            methods.mapBounds()
+
+            await useGeoJsonData(j)
+
+            j.geoLayerGroup.addTo(j.map)
+        },
+
+        async existFileJson(fileName) {
+
+            const url = window.location.origin +
+                '/files/' + fileName.replace('fit', 'geojson')
+
+            try {
+                const response = await fetch(url)
+
+                if (!response.ok) return null
+
+                return await response.text()
+
+            } catch (error) {
+                console.error('Error fetching GeoJSON:', error)
+                return null
+            }
+        },
+
+        mapBounds() {
+
+            const points = j.records
+                .filter(el =>
+                    el.positionLat != null &&
+                    el.positionLong != null
+                )
+                .map(el => ({
+                    lat: el.positionLat *
+                        j.config.semicirclesToDegrees,
+                    lng: el.positionLong *
+                        j.config.semicirclesToDegrees
+                }))
+
+            if (points.length) {
+                j.map.fitBounds(points, {
+                    padding: [20, 20]
+                })
             }
         }
     }
 
-    setMap().createDiv(j)                                                          // create div
-    setMap().createMap(j)                                                          // create map                                          
-    setMap().createTileLayer(j)                                                    // tile
-    await setMap().getFiles(j)                                                     // files per map
-    await getTableIni(j)                                                            // table
-    await setMap().setControlLeft(j)                                               // left control
+    // Inizializzazione mappa
 
-    j.container.addEventListener("click", async e => {                              // event click
-        await setMap(j).containerClick(e)
+    methods.createDiv()                                             // creazione divMap
+    methods.createMap()                                             // creazione map
+    methods.createTileLayer()                                       // tile
+
+    await methods.getFiles()                                        // tabella files
+    await methods.setControlLeft()                                  // control left con tabella
+
+    // Gestione click sulla tabella
+
+    j.container.addEventListener('click', async e => {              // click esecuzione imp file fit
+        await methods.containerClick(e)                             // main on click
     })
+
+    return j
 }
