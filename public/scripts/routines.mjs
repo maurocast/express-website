@@ -190,10 +190,17 @@ export function setNomin(j) {
         });
 }
 export async function saveFile(j){
-            const sourceFilename = new URL(j.fileFit, window.location.href)
+    let sourceFilename=''
+            if(j.fileFit){
+            sourceFilename = new URL(j.fileFit, window.location.href)
                 .pathname.split('/').pop();
             if (!sourceFilename || !/\.fit$/i.test(sourceFilename)) {
                 throw new Error('Could not determine the source FIT filename.');
+            }
+        }
+            if(j.fileName)
+                {sourceFilename = new URL(j.fileName, window.location.href)
+                .pathname.split('/').pop();
             }
 
             const geoJsonFilename = sourceFilename.replace(/\.fit$/i, '.geojson');

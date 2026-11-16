@@ -92,6 +92,7 @@ export async function setMap(j) {
 
                 j.dataJsonString = await setGeo(j).createGeoJson(j)
             } else {
+                j.fileName=fileName
                 j.dataJsonString = dataJsonString
             }
 

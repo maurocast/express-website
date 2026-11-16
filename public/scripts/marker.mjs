@@ -52,7 +52,7 @@ export async function getMarker(j) {
 
         positionSave.addEventListener('click', async (event) => {
             event.stopPropagation();
-            for (let feat of j.featureCollection
+            for (let feat of j.dataJson.features
                 .filter(el => el.properties.id == j.feature.properties.id)) {
                 feat.properties.address = positionName.value,
                     j.tableFiles.innerHTML = ''
