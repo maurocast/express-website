@@ -1,6 +1,6 @@
 
 import { getTableIni } from "./getTable.mjs";
-import { getMarker } from "./marker.mjs";
+import { getMarker,addCenterMarker } from "./marker.mjs";
 
 /**
  * Elabora i dati GeoJSON e costruisce il layer Leaflet.
@@ -77,17 +77,17 @@ function addHillLine(j) {
 
     const feature = j.feature;
 
-    addGeoJsonLine(j, feature, {
+    addGeoJsonLine(j, feature, {                                                    // bordi
         color: "black",
         weight: 10
     });
 
-    const layer = addGeoJsonLine(j, feature, {
+    const layer = addGeoJsonLine(j, feature, {                                      // interno
         color: feature.properties.colorLine,
         weight: 6
     });
 
-    addArrowDecorator(j, layer);
+    addArrowDecorator(j, layer);                                                    // decrator arrow
 }
 
 /**
@@ -97,13 +97,13 @@ function addLowlandLine(j) {
 
     const feature = j.feature;
 
-    const layer = addGeoJsonLine(j, feature, {
+    const layer = addGeoJsonLine(j, feature, {                                      // pianura
         color: feature.properties.colorLine,
         weight: 2
     });
 
-    addDashDecorator(j, layer);
-    addCenterMarker(j);
+    addDashDecorator(j, layer);                                                     // tratteggiata
+    addCenterMarker(j);                                                             // marker centrale
 }
 
 /**
@@ -111,7 +111,7 @@ function addLowlandLine(j) {
  */
 function addDefaultLine(j) {
 
-    addGeoJsonLine(j, j.feature, {
+    addGeoJsonLine(j, j.feature, {                                                  // pianura
         color: "white",
         weight: 2
     });
@@ -178,46 +178,6 @@ function addDashDecorator(j, geojsonLayer) {
             }]
         }).addTo(j.geoLayerGroup);
     });
-}
-
-/**
- * Marker informativo al centro della linea.
- */
-function addCenterMarker(j) {
-
-    const feature = j.feature;
-    const coordinates = feature.geometry.coordinates;
-
-    if (!coordinates.length) return;
-
-    const centerPoint = coordinates[
-        Math.floor((coordinates.length - 1) / 2)
-    ];
-
-    const distance = feature.properties.distance;
-
-    const distanceValue = (
-        -distance.distancestart + distance.distanceend
-    ).toFixed(0);
-
-    const html = `
-        <span>
-            ${distanceValue}
-            <br>
-            ${feature.properties.start} - ${feature.properties.end}
-        </span>
-    `;
-
-    L.marker(
-        [centerPoint[1], centerPoint[0]],
-        {
-            icon: new L.DivIcon({
-                className: "circle-with-textblue",
-                iconSize: [40, 40],
-                html
-            })
-        }
-    ).addTo(j.geoLayerGroup);
 }
 
 /**

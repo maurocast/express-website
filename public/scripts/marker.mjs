@@ -65,3 +65,43 @@ export async function getMarker(j) {
     m.addTo(j.geoLayerGroup)                                                        // add to group
         .on('click', function (e) { e.target.setOpacity(1) });                      // opacity
 }
+
+/**
+ * Marker informativo al centro della linea.
+ */
+export function addCenterMarker(j) {
+ 
+    const feature = j.feature;
+    const coordinates = feature.geometry.coordinates;
+
+    if (!coordinates.length) return;
+
+    const centerPoint = coordinates[
+        Math.floor((coordinates.length - 1) / 2)
+    ];
+
+    const distance = feature.properties.distance;
+
+    const distanceValue = (
+        -distance.distancestart + distance.distanceend
+    ).toFixed(0);
+
+    const html = `
+        <span>
+            ${distanceValue}
+            <br>
+            ${feature.properties.start} - ${feature.properties.end}
+        </span>
+    `;
+
+    L.marker(
+        [centerPoint[1], centerPoint[0]],
+        {
+            icon: new L.DivIcon({
+                className: "circle-with-textblue",
+                iconSize: [40, 40],
+                html
+            })
+        }
+    ).addTo(j.geoLayerGroup);
+}
