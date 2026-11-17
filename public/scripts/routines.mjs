@@ -159,14 +159,14 @@ export function fncFetch(url, requestBody, headers, POSTGET) {
             });
     });
 }
-export function objAss(htmlElement,assignment){
-    return Object.assign(document.createElement(htmlElement),assignment)
+export function objAss(htmlElement, assignment) {
+    return Object.assign(document.createElement(htmlElement), assignment)
 }
-export function getColor(j)  {                                                    // colosi salita
-        j.pendenza < 0 ? j.pendenza = 0 : ''
-        j.pendenza > 15 ? j.pendenza = 15 : ''
-        return j.config.colorsArr[j.pendenza.toString()]
-    }
+export function getColor(j) {                                                    // colosi salita
+    j.pendenza < 0 ? j.pendenza = 0 : ''
+    j.pendenza > 15 ? j.pendenza = 15 : ''
+    return j.config.colorsArr[j.pendenza.toString()]
+}
 export function setNomin(j) {
 
     const params = new URLSearchParams({
@@ -189,33 +189,35 @@ export function setNomin(j) {
             console.error(error);
         });
 }
-export async function saveFile(j){
-    let sourceFilename=''
-            if(j.fileFit){
-            sourceFilename = new URL(j.fileFit, window.location.href)
-                .pathname.split('/').pop();
-            if (!sourceFilename || !/\.fit$/i.test(sourceFilename)) {
-                throw new Error('Could not determine the source FIT filename.');
-            }
-        }
-            if(j.fileName)
-                {sourceFilename = new URL(j.fileName, window.location.href)
-                .pathname.split('/').pop();
-            }
+export async function getFiles(j) {
+    const response = await fetch('/api/files')                          // load files       
+    const files = await response.json()                                 // files fit
 
-            const geoJsonFilename = sourceFilename.replace(/\.fit$/i, '.geojson');
-            const form = new FormData();
-            form.append(
-                'file',
-                new Blob([JSON.stringify(j.featureCollection)], { type: 'application/geo+json' }),
-                geoJsonFilename
-            );
+    j.files = files.map(file => ({ 'file.fit': file }))                  // array to pass a getTableIni()
+}
 
-            const response = await fetch('/api/files', {
-                method: 'POST',
-                body: form
-            });
-            if (!response.ok) {
-                throw new Error(`Could not save GeoJSON file: ${response.status}`);
-            }
+export async function saveFile(j) {
+    let sourceFileName = ''                                                                 // file to save
+    if (j.fileFit) {
+        sourceFileName = j.fileFit
+    }
+    if (j.fileName) {                                                                       // file fit
+        sourceFileName = [window.location.origin, j.config.server.pathFiles,j.fileName].join('/')
+    }
+
+    const geoJsonFilename = sourceFileName.replace('fit', 'geojson');
+    const form = new FormData();
+    form.append(
+        'file',
+        new Blob([JSON.stringify(j.dataJson)], { type: 'application/geo+json' }),
+        geoJsonFilename
+    );
+
+    const response = await fetch('/api/files', {
+        method: 'POST',
+        body: form
+    });
+    if (!response.ok) {
+        throw new Error(`Could not save GeoJSON file: ${response.status}`);
+    }
 }

@@ -1,7 +1,7 @@
 /**
  * da ChatGPT
  */
-import { objAss } from './routines.mjs'
+import { objAss,getFiles } from './routines.mjs'
 import { getTableIni } from './getTable.mjs'
 import { fetchFileFit } from './fileFit.mjs'
 import { setGeo } from './geoJsonFit.mjs'
@@ -40,14 +40,7 @@ export async function setMap(j) {
                 }
             ).addTo(j.map)
         },
-
-        async getFiles() {
-            const response = await fetch('/api/files')
-            const files = await response.json()
-
-            j.files = files.map(file => ({ 'file.fit':file }))
-        },
-
+    
         async setControlLeft() {
             j.tableFilesRecordsPage=10
             j.tableFiles = await getTableIni(j)
@@ -153,7 +146,7 @@ export async function setMap(j) {
     methods.createMap()                                             // creazione map
     methods.createTileLayer()                                       // tile
 
-    await methods.getFiles()                                        // tabella files
+    await getFiles(j)                                               // tabella files
     await methods.setControlLeft()                                  // control left con tabella
 
     // Gestione click sulla tabella

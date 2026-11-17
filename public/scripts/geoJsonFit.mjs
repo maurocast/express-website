@@ -8,7 +8,6 @@ export function setGeo(j) {
     return {
         async createGeoJson(j) {
             await this.setFeatureCollection(j)                                          // file fit
-            await saveFile(j)                                                      // save
             return JSON.stringify(j.featureCollection)                                  // transformed json
         },
         
@@ -52,6 +51,15 @@ export function setGeo(j) {
                         type: "Feature",
                         geometry: { type: "Point", coordinates: [] },
                         properties: {
+                            color: 'red',                                        // descrizione
+                            slice: [el.start, el.start + 1],
+                             id:j.ct++
+                        }
+                    }, // partenza
+                    {
+                        type: "Feature",
+                        geometry: { type: "Point", coordinates: [] },
+                        properties: {
                             color: 'green',
                             hill: {
                                 km: (el.distance / 1000).toFixed(1),
@@ -61,16 +69,7 @@ export function setGeo(j) {
                             slice: [el.end, el.end + 1],
                             id:j.ct++
                         }
-                    }, // arrivo
-                    {
-                        type: "Feature",
-                        geometry: { type: "Point", coordinates: [] },
-                        properties: {
-                            color: 'red',                                        // descrizione
-                            slice: [el.start, el.start + 1],
-                             id:j.ct++
-                        }
-                    }, // partenza 
+                    }, // arrivo                 
                     {                                                              // linestring 
                         type: "Feature",
                         geometry: { type: "LineString", coordinates: [] },

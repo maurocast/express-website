@@ -1,26 +1,64 @@
-/***/
-/** 
-const button = document.getElementById('testButton');
 
-button.addEventListener('click', async () => {
-    const result = document.getElementById('result');
+import path from 'node:path';
+import fs from 'fs'
 
-    result.textContent = 'Connecting to server...';
+const app = express.Router();
 
+const FILES_DIR = path.resolve(__dirname, "files");
+
+function resolveDirectory(relativePath = "") {
+    const resolved = path.resolve(FILES_DIR, relativePath);
+
+    if (
+        resolved !== FILES_DIR &&
+        !resolved.startsWith(FILES_DIR + path.sep)
+    ) {
+        throw new Error("Invalid path");
+    }
+
+    return resolved;
+}
+
+app.get("/api/files", (req, res) => {
     try {
-        const response = await fetch('/api/status');
+        const dir = resolveDirectory(req.query.path || "");
 
-        if (!response.ok) {
-            throw new Error('Server returned an error');
-        }
+        const items = fs.readdirSync(dir, {
+            withFileTypes: true
+        }).map(item => {
+            const fullPath = path.join(dir, item.name);
+            const stats = fs.statSync(fullPath);
 
-        const data = await response.json();
+            return {
+                name: item.name,
+                isDirectory: item.isDirectory(),
+                size: stats.size,
+                modified: stats.mtime
+            };
+        });
 
-        result.textContent = data.message;
-
+        res.json(items);
     } catch (error) {
-        result.textContent = 'Could not connect to server.';
-        console.error(error);
+        res.status(400).json({
+            error: error.message
+        });
     }
 });
-*/
+
+app.get("/api/download", (req, res) => {
+    try {
+        const filePath = resolveDirectory(req.query.path || "");
+
+        if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+            return res.status(404).json({
+                error: "File not found"
+            });
+        }
+
+        res.download(filePath);
+    } catch (error) {
+        res.status(400).json({
+            error: error.message
+        });
+    }
+});

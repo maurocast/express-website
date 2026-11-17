@@ -15,15 +15,8 @@
         "xtileLayer": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         "xattribution": "Map data: &copy; OpenStreetMap contributors"        
     },
-    "menu":
-    [
-        {"className":"left-menu-item-header","innerHTML":"Menu Generale","fn":""},
-        {"className":"left-menu-item","innerHTML":"Parametri mappa Iniziale","fn":"{ ParametrizzazioneIniziale(e, config) }"},
-        {"className":"left-menu-item","innerHTML":"Uscite","fn":"Uscite"},
-        {"className":"left-menu-item","innerHTML":"Routing","fn":"(e) => { Routing(config, map, {}) }"},
-        {"className":"left-menu-item","innerHTML":"Race", "fn":"Race"},
-        {"className":"left-menu-item","innerHTML":"Importazione", "fn":"{ config._sql = 'importFileServer', setXMLHttpRequest(config) }"}
-    ],
+
+    
    
     "controlScale":{
         "position": "bottomleft",
@@ -33,49 +26,7 @@
     },
     
     "server": {
-        "_pagineRequest": [
-            "/index.html",
-            "/doc.html" 
-        ],
-        "_paginaIniziale": "/index.html",
-        "path_file": "web/public",
-        "_suffissoUrl": [
-            "html",
-            "css",
-            "ico",
-            "jpg",
-            "png",
-            "gif",
-            "svg",
-            "js",
-            "mjs",
-            "json"
-        ],
-        "_contentType": [
-            "text/html",
-            "text/css",
-            "image/x-icon",
-            "image/x-icon",
-            "image/png",
-            "image/x-icon",
-            "image/svg+xml",
-            "text/javascript",
-            "text/javascript",
-            "application/json"
-        ],
-        "_folder": [
-            "web/",
-            "web/",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "web/",
-            ""
-        ],
-        "_Porta": "3000"
+        "pathFiles": ["files"]
     },
     "NcolorsArr": [
         0,

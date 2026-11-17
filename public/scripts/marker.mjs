@@ -3,9 +3,12 @@ import { getTableIni } from "./getTable.mjs"
 
 export async function getMarker(j) {
 
-    const locationLabel = j.feature.properties.color === 'green' ? 'Arrivo' : 'Partenza';         // label
-    const locationAddress = j.feature.properties.address ?? '';                                   // indirizzo
+    const locationLabel = j.feature.properties.color === 'green' ? 
+    j.feature.properties.id +' Arrivo' 
+    : j.feature.properties.id +' Partenza';                                                         // label
+    const locationAddress = j.feature.properties.address ?? '';                                     // indirizzo
     const m = L.marker(j.feature.geometry.coordinates.slice().reverse(), {                          // marker 
+        draggable: 'true',
         icon: new L.DivIcon({
             iconSize: null,
             className: 'circle-with-text' + j.feature.properties.color,   // style 
@@ -13,6 +16,7 @@ export async function getMarker(j) {
             <img class="position-icon" src="./assets/icons/position.svg" alt="position">
             <img class="position-save" src="./assets/icons/SaveAS.png" alt="save">
             <input value="${locationAddress.replace(/"/g, '&quot;')}" 
+            id=${j.feature.properties.id}
             class="position-name" type="text" size="1" style="font-size:08px;"> 
             </span>`
         })
@@ -24,6 +28,8 @@ export async function getMarker(j) {
         const positionIcon = mEl.querySelector('.position-icon');
         const positionSave = mEl.querySelector('.position-save');
         const positionName = mEl.querySelector('.position-name');
+              positionName.size = Math.max(positionName.value.length, 1);
+        
         positionName.addEventListener('input', () => {
             positionName.size = Math.max(positionName.value.length, 1);
         });
@@ -48,12 +54,13 @@ export async function getMarker(j) {
                 });
                 positionName.size = Math.max(positionName.value.length, 1);
             }
+            m.setOpacity(1)
         });
 
         positionSave.addEventListener('click', async (event) => {
             event.stopPropagation();
             for (let feat of j.dataJson.features
-                .filter(el => el.properties.id == j.feature.properties.id)) {
+                .filter(el => el.properties.id == event.target.id)) {
                 feat.properties.address = positionName.value,
                     j.tableFiles.innerHTML = ''
             }
